@@ -1,0 +1,6 @@
+build/
+sdkconfig.old
+gdbinit
+cmake-build-debug
+.idea/
+main/settings.h

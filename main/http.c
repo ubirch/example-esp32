@@ -9,33 +9,36 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include <string.h>
-#include <stdlib.h>
-#include <msgpack.h>
-#include <ubirch_protocol.h>
-#include <ubirch_ed25519.h>
-#include <msgpack/object.h>
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "esp_log.h"
-#include "esp_system.h"
-#include "nvs_flash.h"
-//#include "app_wifi.h"
+
+
+#include "msgpack.h"
+#include "ubirch_protocol.h"
+#include "ubirch_ed25519.h"
+
 
 #include "esp_http_client.h"
 #include "http.h"
 #include "util.h"
 #include "keyHandling.h"
+#include "settings.h"
+#include "sntpTime.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
-static const char *TAG = "HTTP_CLIENT";
 
+extern unsigned char UUID[16];
+
+static const char *TAG = "HTTP_CLIENT";
 
 size_t rcv_buffer_size = 100;
 msgpack_unpacker *unpacker = NULL;
 
-void http_init(){
+
+void http_init_unpacker(){
     unpacker = msgpack_unpacker_new(rcv_buffer_size);
 }
+
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -81,6 +84,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+
 void http_post_task(const char *url, const char *data, const size_t length) {
     ESP_LOGI(TAG, "post");
     esp_http_client_config_t config = {
@@ -88,7 +92,6 @@ void http_post_task(const char *url, const char *data, const size_t length) {
             .event_handler = _http_event_handler,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
-
     // POST
     esp_http_client_set_url(client, url);
     esp_http_client_set_method(client, HTTP_METHOD_POST);
@@ -110,9 +113,9 @@ void http_post_task(const char *url, const char *data, const size_t length) {
     }
 }
 
+
 void check_response() {
     ESP_LOGI(TAG, "check");
-
     if(!ubirch_protocol_verify(unpacker,esp32_ed25519_verify)){
         ESP_LOGI(TAG,"check successful");
         parse_payload(unpacker);
@@ -121,29 +124,27 @@ void check_response() {
     }
 }
 
+
 void parse_payload(msgpack_unpacker *unpacker) {
     ESP_LOGI(TAG, "parsing payload");
-
+    // new unpacked result buffer
     msgpack_unpacked result;
     msgpack_unpacked_init(&result);
-
+    // unpack into result buffer and look for ARRAY
     if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJECT_ARRAY) {
+        // redirect the result to the envelope
         msgpack_object *envelope = result.data.via.array.ptr;
-
         int p_version = 0;
-
-        // envelope version
+        // get the envelope version
         if (envelope->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
             p_version = (int) envelope->via.u64;
             ESP_LOGI(TAG, "VERSION: %d (variant %d)\r\n", p_version >> 4, p_version & 0xf);
         }
-
-        // backend UUID
+        // get the backend UUID
         if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
             ESP_LOGI(TAG, "UUID: ");
             print_message(envelope->via.raw.ptr, envelope->via.raw.size);
         }
-
         // only continue if the envelope version and variant match
         if (p_version == proto_chained) {
             // previous message signature (from our request message)
@@ -151,15 +152,16 @@ void parse_payload(msgpack_unpacker *unpacker) {
             if(loadSignature(prev_signature)){
                 ESP_LOGW(TAG,"error loading signature");
             }
+            // compare the previous signature to the received one
             bool prevSignatureMatches = false;
             if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
-                ESP_LOGI(TAG, "PREV: ");
-                print_message(envelope->via.raw.ptr, envelope->via.raw.size);
+//                ESP_LOGI(TAG, "PREV: ");
+//                print_message(envelope->via.raw.ptr, envelope->via.raw.size);
                 if (envelope->via.raw.size == crypto_sign_BYTES) {
                     prevSignatureMatches = !memcmp(prev_signature, envelope->via.raw.ptr, UBIRCH_PROTOCOL_SIGN_SIZE);
                 }
             }
-
+            // only continue, if the signatures match
             if (prevSignatureMatches && (++envelope)->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
                 ESP_LOGI(TAG, "TYPE: %d\r\n", (unsigned int) envelope->via.u64);
                 switch ((unsigned int) envelope->via.u64) {
@@ -167,32 +169,28 @@ void parse_payload(msgpack_unpacker *unpacker) {
                         parseMeasurementReply(++envelope);
                         break;
                     case UBIRCH_PROTOCOL_TYPE_HSK:
-                        //parseHandshakeReply(++envelope, state, config);
+                        //TODO handshake reply evaluation
                         break;
                     default:
                         ESP_LOGI(TAG, "unknown packet data type");
                         break;
                 }
             } else {
-                ESP_LOGI(TAG, "prev signature mismatch or message type wrong!");
+                ESP_LOGW(TAG, "prev signature mismatch or message type wrong!");
             }
         } else {
-            ESP_LOGI(TAG, "protocol version mismatch: %d != %d", p_version, proto_chained);
+            ESP_LOGW(TAG, "protocol version mismatch: %d != %d", p_version, proto_chained);
         }
     } else {
-        ESP_LOGI(TAG, "empty message not accepted");
+        ESP_LOGW(TAG, "empty message not accepted");
     }
     ESP_LOGI(TAG, "destroy result");
     msgpack_unpacked_destroy(&result);
 }
 
 int response = 0;
-/**
- * Parse a measurement packet reply.
- * @param envelope the packet envelope at the point where the payload starts
- * @param state the current state of the trackle
- * @param config the current trackle configuation
- */
+
+
 void parseMeasurementReply(msgpack_object *envelope) {
     ESP_LOGI(TAG, "measurement reply");
     if (envelope->type == MSGPACK_OBJECT_MAP) {
@@ -210,13 +208,7 @@ void parseMeasurementReply(msgpack_object *envelope) {
     else ESP_LOGI(TAG, "unknown MSGPACK object");
 }
 
-/**
- * Helper function, checking a specific key in a msgpack map.
- * @param map the map
- * @param key the key we look for
- * @param type the type of the value we look for
- * @return true if the key and type match
- */
+
 bool match(const msgpack_object_kv *map, const char *key, const int type) {
     ESP_LOGI(TAG, "match");
     const size_t keyLength = strlen(key);
@@ -226,4 +218,48 @@ bool match(const msgpack_object_kv *map, const char *key, const int type) {
            !memcmp(key, map->key.via.raw.ptr, keyLength);
 }
 
+/*
+ * create a msgpack message
+ */
+void create_message(void){
+// create buffer, writer, ubirch protocol context and packer
+    msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
+    ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
+                                                 sbuf, msgpack_sbuffer_write, esp32_ed25519_sign, UUID);
+    msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
+// load the old signature and copy it to the protocol
+    unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
+    if(loadSignature(old_signature)){
+        ESP_LOGW(TAG,"error loading the old signature");
+    }
+    memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
+// start the protocol
+    ubirch_protocol_start(proto, pk);
 
+// create map("data": array[ timstamp, value ])
+    msgpack_pack_map(pk, 1);
+    char *dataPayload = "data";
+    msgpack_pack_raw(pk, strlen(dataPayload));
+    msgpack_pack_raw_body(pk, dataPayload, strlen(dataPayload));
+// create array[ timestamp, value ])
+    msgpack_pack_array(pk, 2);
+    uint64_t ts = getTimeUs();
+    msgpack_pack_uint64(pk, ts);
+    uint32_t fake_temp =(esp_random() & 0x0F);
+    msgpack_pack_int32(pk, (int32_t)(fake_temp));
+// finish the protocol
+    ubirch_protocol_finish(proto, pk);
+    if(storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)){
+        ESP_LOGW(TAG,"error storing the signature");
+    }
+// send the message
+    print_message((const char *)(sbuf->data), (size_t)(sbuf->size));
+    http_post_task(UHTTP_URL, (const char *) (sbuf->data), sbuf->size);
+
+    ESP_LOGI(TAG,"cleaning up");
+// clear buffer for next message
+    msgpack_sbuffer_clear(sbuf);
+// free packer and protocol
+    msgpack_packer_free(pk);
+    ubirch_protocol_free(proto);
+}

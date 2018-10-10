@@ -3,7 +3,6 @@
 #include <esp_log.h>
 #include <esp_system.h>
 
-#include "settings.h"
 #include "util.h"
 
 unsigned char UUID[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,

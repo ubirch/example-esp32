@@ -1,11 +1,38 @@
-/* ESP HTTP Client Example
+/*!
+ * @file    http.c
+ * @brief   http functions to send ubirch protocol messages via http post
+ *          and to evaluate the response.
+ *
+ * @author Waldemar Gruenwald
+ * @date   2018-10-10
+ *
+ * @copyright &copy; 2018 ubirch GmbH (https://ubirch.com)
+ *
+ * ```
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ```
+ *
+ * The code was taken from:
+ *
+ * ESP HTTP Client Example
+ *
+ * This example code is in the Public Domain (or CC0 licensed, at your option.)
+ *
+ * Unless required by applicable law or agreed to in writing, this
+ * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied.
+ */
 
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include <string.h>
@@ -35,15 +62,18 @@ size_t rcv_buffer_size = 100;
 msgpack_unpacker *unpacker = NULL;
 
 
-void http_init_unpacker(){
+void http_init_unpacker() {
     unpacker = msgpack_unpacker_new(rcv_buffer_size);
 }
 
-
-esp_err_t _http_event_handler(esp_http_client_event_t *evt)
-{
-//    static char * p_buffer = NULL;
-    switch(evt->event_id) {
+/*!
+ * Event handler for all HTTP events.
+ * This function is called automatically from the system,
+ * @param evt, which calls this handler
+ * @return error
+ */
+esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
+    switch (evt->event_id) {
         case HTTP_EVENT_ERROR:
             ESP_LOGD(TAG, "HTTP_EVENT_ERROR");
             break;
@@ -55,7 +85,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_ON_HEADER:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
-            if(!strcmp("Content-Length",(const char*)(evt->header_key))){
+            if (!strcmp("Content-Length", (const char *) (evt->header_key))) {
                 ESP_LOGD(TAG, "MESSAGE LENGTH %s", evt->header_value);
             }
             break;
@@ -63,16 +93,14 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
                 // Write out data
-                printf("%.*s", evt->data_len, (char*)evt->data);
+                printf("%.*s", evt->data_len, (char *) evt->data);
                 print_message(evt->data, evt->data_len);
-                if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len)
-                {
+                if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
                     msgpack_unpacker_reserve_buffer(unpacker, evt->data_len);
                 }
                 memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
                 msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
             }
-
             break;
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
@@ -95,20 +123,20 @@ void http_post_task(const char *url, const char *data, const size_t length) {
     // POST
     esp_http_client_set_url(client, url);
     esp_http_client_set_method(client, HTTP_METHOD_POST);
-    esp_http_client_set_header(client, "Content-Type","application/octet-stream");
-    esp_http_client_set_post_field(client, data, (int)(length));
+    esp_http_client_set_header(client, "Content-Type", "application/octet-stream");
+    esp_http_client_set_post_field(client, data, (int) (length));
     esp_err_t err = esp_http_client_perform(client);
     bool success = false;
     if (err == ESP_OK) {
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
                  esp_http_client_get_status_code(client),
                  esp_http_client_get_content_length(client));
-        success = (esp_http_client_get_status_code(client) >= 200 && esp_http_client_get_status_code(client) <=299);
+        success = (esp_http_client_get_status_code(client) >= 200 && esp_http_client_get_status_code(client) <= 299);
     } else {
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
     esp_http_client_cleanup(client);
-    if(success) {
+    if (success) {
         check_response();
     }
 }
@@ -116,8 +144,8 @@ void http_post_task(const char *url, const char *data, const size_t length) {
 
 void check_response() {
     ESP_LOGI(TAG, "check");
-    if(!ubirch_protocol_verify(unpacker,esp32_ed25519_verify)){
-        ESP_LOGI(TAG,"check successful");
+    if (!ubirch_protocol_verify(unpacker, esp32_ed25519_verify)) {
+        ESP_LOGI(TAG, "check successful");
         parse_payload(unpacker);
     } else {
         ESP_LOGW(TAG, "verification failed");
@@ -149,8 +177,8 @@ void parse_payload(msgpack_unpacker *unpacker) {
         if (p_version == proto_chained) {
             // previous message signature (from our request message)
             unsigned char prev_signature[UBIRCH_PROTOCOL_SIGN_SIZE];
-            if(loadSignature(prev_signature)){
-                ESP_LOGW(TAG,"error loading signature");
+            if (loadSignature(prev_signature)) {
+                ESP_LOGW(TAG, "error loading signature");
             }
             // compare the previous signature to the received one
             bool prevSignatureMatches = false;
@@ -198,14 +226,16 @@ void parseMeasurementReply(msgpack_object *envelope) {
         for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
             if (match(map, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
                 // read new interval setting
-                unsigned int value = (unsigned int)(map->val.via.u64);
+                unsigned int value = (unsigned int) (map->val.via.u64);
                 ESP_LOGI(TAG, "i = %d ", value);
                 response = value;
+            } else {
+                ESP_LOGI(TAG, "unknown MSGPACK object in MAP");
             }
-            else ESP_LOGI(TAG, "unknown MSGPACK object in MAP");
         }
+    } else {
+        ESP_LOGI(TAG, "unknown MSGPACK object");
     }
-    else ESP_LOGI(TAG, "unknown MSGPACK object");
 }
 
 
@@ -218,48 +248,46 @@ bool match(const msgpack_object_kv *map, const char *key, const int type) {
            !memcmp(key, map->key.via.raw.ptr, keyLength);
 }
 
-/*
- * create a msgpack message
- */
-void create_message(void){
-// create buffer, writer, ubirch protocol context and packer
+
+void create_message(void) {
+    // create buffer, writer, ubirch protocol context and packer
     msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
     ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
                                                  sbuf, msgpack_sbuffer_write, esp32_ed25519_sign, UUID);
     msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
-// load the old signature and copy it to the protocol
+    // load the old signature and copy it to the protocol
     unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
-    if(loadSignature(old_signature)){
-        ESP_LOGW(TAG,"error loading the old signature");
+    if (loadSignature(old_signature)) {
+        ESP_LOGW(TAG, "error loading the old signature");
     }
     memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
-// start the protocol
+    // start the protocol
     ubirch_protocol_start(proto, pk);
 
-// create map("data": array[ timstamp, value ])
-    msgpack_pack_map(pk, 1);
-    char *dataPayload = "data";
-    msgpack_pack_raw(pk, strlen(dataPayload));
-    msgpack_pack_raw_body(pk, dataPayload, strlen(dataPayload));
-// create array[ timestamp, value ])
+    // create map("data": array[ timstamp, value ])
+//    msgpack_pack_map(pk, 1);
+//    char *dataPayload = "data";
+//    msgpack_pack_raw(pk, strlen(dataPayload));
+//    msgpack_pack_raw_body(pk, dataPayload, strlen(dataPayload));
+    // create array[ timestamp, value ])
     msgpack_pack_array(pk, 2);
     uint64_t ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
-    uint32_t fake_temp =(esp_random() & 0x0F);
-    msgpack_pack_int32(pk, (int32_t)(fake_temp));
-// finish the protocol
+    uint32_t fake_temp = (esp_random() & 0x0F);
+    msgpack_pack_int32(pk, (int32_t) (fake_temp));
+    // finish the protocol
     ubirch_protocol_finish(proto, pk);
-    if(storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)){
-        ESP_LOGW(TAG,"error storing the signature");
+    if (storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
+        ESP_LOGW(TAG, "error storing the signature");
     }
-// send the message
-    print_message((const char *)(sbuf->data), (size_t)(sbuf->size));
+    // send the message
+    print_message((const char *) (sbuf->data), (size_t) (sbuf->size));
     http_post_task(UHTTP_URL, (const char *) (sbuf->data), sbuf->size);
 
-    ESP_LOGI(TAG,"cleaning up");
-// clear buffer for next message
+    ESP_LOGI(TAG, "cleaning up");
+    // clear buffer for next message
     msgpack_sbuffer_clear(sbuf);
-// free packer and protocol
+    // free packer and protocol
     msgpack_packer_free(pk);
     ubirch_protocol_free(proto);
 }

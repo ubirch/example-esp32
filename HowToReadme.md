@@ -60,7 +60,7 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 ## Build your application
 
 To build an app.....
-[component.mk](main/component.mk) is required
+[component.mk](main/component.mk) is required 
 
 
 ## Key registration

@@ -57,6 +57,11 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 
 ## Download  
 
+## Build your application
+
+To build an app.....
+[component.mk](main/component.mk) is required
+
 
 ## Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
@@ -129,7 +134,6 @@ msgpack_sbuffer_clear(sbuf);
 // free packer and protocol
 msgpack_packer_free(pk);
 ubirch_protocol_free(proto);
-
 ```
  
 ## evaluate the message response
@@ -188,13 +192,13 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
                         msgpack_object_kv *map = envelope->via.map.ptr;
                         for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
                             if (match(map, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
-                                //
-                                // this is the space, where Parameters from the UI can be added
-                                //
                                 // read new interval setting
                                 unsigned int value = (unsigned int) (map->val.via.u64);
                                 response = value;
                             }
+                            //
+                            // this is the space, where Parameters from the UI can be added
+                            //                   
                         }
                     }
                     break;
@@ -208,7 +212,5 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
     }
 }
 msgpack_unpacked_destroy(&result);
-
-
 ```
 

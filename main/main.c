@@ -57,6 +57,8 @@ void app_main(void) {
 
     obtain_time();
     checkKeyStatus();
+
+//    registerKeys();
     // set the blue LED pin on the ESP32 DEVKIT V1 board
     gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
 

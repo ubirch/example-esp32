@@ -9,7 +9,7 @@ and setup the necessary tools and software packages.
 ## ESP32-IDF
 
 The ESP32 runs on a freeRTOS operating system, customized for the espressif Controllers.
-Therefore, the Espressif IoT Development Framework ([ESP-IDF]((https://github.com/espressif/esp-idf)))
+Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com/espressif/esp-idf))
 has to be downloaded and set up.
 
 ```[bash]
@@ -48,7 +48,12 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 
 ## Download example project ESP32
 
-[TODO](also to do)
+The example project [example-esp32](https://github.com/ubirch/example-esp32) can be used to implement
+an application on the ESP32, which uses the ubirch-protocol.
+
+```[bash]
+$ git clone https://github.com/ubirch/example-esp32.git
+```
 
 - the application has to generate and store keys
 - the application has to store the previous signature (from the last message)
@@ -59,8 +64,25 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 
 ## Build your application
 
-To build an app.....
-[component.mk](main/component.mk) is required 
+To build an application, a customary make file [component.mk](main/component.mk) is required, which
+connects the application to the IDF and allows to build the complete firmware and also to use the IDF 
+make commands. 
+
+To build the application type:
+``` $ make all``` 
+or
+``` $ make app```
+
+To cleanup the build directory type:
+``` $ make clear```
+
+To flash the device, type:
+``` $ make flash```
+
+To see the console output, type: 
+``` $ make monitor```
+or use your prefered serial console.
+
 
 
 ## Key registration

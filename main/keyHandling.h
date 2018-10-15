@@ -53,7 +53,7 @@ bool memoryErrorCheck(esp_err_t err);
  * @return true, if something went wrong,
  * @return false if keys are available
  */
-bool readKeys(void);
+bool loadKeys(void);
 
 /*!
  * Write the key values to the memory
@@ -61,7 +61,7 @@ bool readKeys(void);
  * @return true, if something went wrong,
  * @return false if keys were successfully stored
  */
-bool writeKeys(void);
+bool storeKeys(void);
 
 /*!
  * Load the last signature

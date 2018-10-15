@@ -38,10 +38,6 @@
 #define MSGPACK_MSG_REPLY 85
 #define MSGPACK_MSG_UBIRCH 50
 
-/*!
- * initialize the unpacker
- */
-void http_init_unpacker(void);
 
 /*!
  * Perform a http post request with the given data.

@@ -109,7 +109,7 @@ bool memoryErrorCheck(esp_err_t err) {
  *
  * return error, true, if something went wrong, false if keys are available
  */
-bool readKeys(void) {
+bool loadKeys(void) {
     ESP_LOGI(TAG, "read keys");
     nvs_handle keyHandle;
     // open the memory
@@ -138,7 +138,7 @@ bool readKeys(void) {
  *
  * return error: true, if something went wrong, false if keys were successfully stored
  */
-bool writeKeys(void) {
+bool storeKeys(void) {
     ESP_LOGI(TAG, "write keys");
     nvs_handle keyHandle;
     // open the memory
@@ -243,9 +243,9 @@ void registerKeys(void) {
 
 void checkKeyStatus(void) {
     //read the Keys, if available
-    if (readKeys()) {
+    if (loadKeys()) {
         createKeys();
-        writeKeys();
+        storeKeys();
         registerKeys();
     }
 }

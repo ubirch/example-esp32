@@ -62,10 +62,6 @@ size_t rcv_buffer_size = 100;
 msgpack_unpacker *unpacker = NULL;
 
 
-void http_init_unpacker() {
-    unpacker = msgpack_unpacker_new(rcv_buffer_size);
-}
-
 /*!
  * Event handler for all HTTP events.
  * This function is called automatically from the system,
@@ -115,6 +111,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 
 void http_post_task(const char *url, const char *data, const size_t length) {
     ESP_LOGI(TAG, "post");
+    unpacker = msgpack_unpacker_new(rcv_buffer_size);
+
     esp_http_client_config_t config = {
             .url = url,
             .event_handler = _http_event_handler,
@@ -137,8 +135,11 @@ void http_post_task(const char *url, const char *data, const size_t length) {
     }
     esp_http_client_cleanup(client);
     if (success) {
+        int size_unpacker = msgpack_unpacker_message_size(unpacker);
+        ESP_LOGI(TAG, "unpacker-size %d", size_unpacker);
         check_response();
     }
+    msgpack_unpacker_free(unpacker);
 }
 
 

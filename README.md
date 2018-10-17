@@ -1,14 +1,23 @@
 [![ubirch GmbH](files/ubirch_logo.png)](https://ubirch.de)
 
 # How To implement the ubirch protocol on the ESP32
-1. [Required packages](#Required-packages)
-    1. [ESP32-IDF](#esp32-IDF)
+1. [Required packages](#required-packages)
+    1. [ESP32-IDF](#esp32-idf)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
-    3. [example project ESP32](#example-project-esp32)
-4. []()
-5. []()
+    1. [example project ESP32](#example-project-esp32)
+1. [Build your application](#build-your-application)
+1. [Basic functionality of the example](#basic-functionality-of-the-example)
+    1. [Key registration](#key-registration)
+    1. [Message creation](#message-creation)
+    1. [Message response evaluation](#message-response-evaluation)
+1. []()
+1. []()
+1. []()
+1. []()
+1. []()
+1. []()
 
 
 ## Required packages
@@ -66,18 +75,6 @@ an application on the ESP32, which uses the ubirch-protocol.
 $ git clone https://github.com/ubirch/example-esp32.git
 ```
 
-## Basic functionality of the example
-
-- generate keys, see [keyHandling.h](main/keyHandling.h) -> createKeys()
-- store keys, see [keyHandling.h](main/keyHandling.h) -> storeKeys()
-- register keys at the backend, see [keyHandling.h](main/keyHandling.h) -> registerKeys()
-- store the previous signature (from the last message), [keyHandling.h](main/keyHandling.h) -> storeSignature() 
-- store the public key from the backend, to verify the incoming message replies (currenty hard coded public key)
-- create a message in msgpack format, according to ubirch-protocol, see [http.h](main/http.h) -> create_message()
-- evaluate the message response, see [http.h](main/http.h) -> checkResponse()
-
-  
-
 ## Build your application
 
 To build an application, a customary make file [component.mk](main/component.mk) is required, which
@@ -99,9 +96,19 @@ To see the console output, type:
 ``` $ make monitor```
 or use your prefered serial console.
 
+## Basic functionality of the example
+
+- generate keys, see [keyHandling.h](main/keyHandling.h) -> createKeys()
+- store keys, see [keyHandling.h](main/keyHandling.h) -> storeKeys()
+- register keys at the backend, see [keyHandling.h](main/keyHandling.h) -> registerKeys()
+- store the previous signature (from the last message), [keyHandling.h](main/keyHandling.h) -> storeSignature() 
+- store the public key from the backend, to verify the incoming message replies (currenty hard coded public key)
+- create a message in msgpack format, according to ubirch-protocol, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> create_message()
+- make a http post request, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> http_post_task()
+- evaluate the message response, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> checkResponse()
 
 
-## Key registration
+### Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
 
 
@@ -136,8 +143,10 @@ ubirch_protocol_free(proto);
 msgpack_sbuffer_free(sbuf);
 ```
 
-## creating message
-After the public key is registered in the backend, the message transmission can take place.
+### Message creation
+
+After the public key is registered in the backend, messages for sensor values can be created and transmitted, 
+like in the example from [create_message](main/ubirch-proto-http.h)
 
 ```C
 // create buffer, writer, ubirch protocol context and packer
@@ -153,20 +162,25 @@ if (loadSignature(old_signature)) {
 memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
 // start the protocol
 ubirch_protocol_start(proto, pk);
-
+//
+// PAYLOAD
+// add your sensor values here
+//
 // create array[ timestamp, value ])
 msgpack_pack_array(pk, 2);
 uint64_t ts = getTimeUs();
 msgpack_pack_uint64(pk, ts);
 uint32_t fake_temp = (esp_random() & 0x0F);
 msgpack_pack_int32(pk, (int32_t) (fake_temp));
+//
+// END OF PAYLOAD
+//
 // finish the protocol
 ubirch_protocol_finish(proto, pk);
 if (storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
     ESP_LOGW(TAG, "error storing the signature");
 }
 // send the message
-print_message((const char *) (sbuf->data), (size_t) (sbuf->size));
 http_post_task(UHTTP_URL, (const char *) (sbuf->data), sbuf->size);
 
 // clear buffer for next message
@@ -176,24 +190,38 @@ msgpack_packer_free(pk);
 ubirch_protocol_free(proto);
 ```
  
-## evaluate the message response
+## Message response evaluation
 
-```C
+The message response evaluation is performed in several steps, by several functions. 
+The details are discribed below in consecutive steps.
+ 
+- the unpacker is a global array pointer, where the data is stored
+```c
 // create a new unpacker for the receive message
 msgpack_unpacker *unpacker = NULL;
+```
+- generate a new unpacker at the beginning of every transmission
+```c
 unpacker = msgpack_unpacker_new(rcv_buffer_size);
+```
+- store the incoming receive message data into the buffer
+```c
 // write the data to the unpacker    
 if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
     msgpack_unpacker_reserve_buffer(unpacker, evt->data_len);
 }
 memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
 msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
-// verify the respons
+```
+- if the http post was successful -> status < 300, verify the response 
+```c
 if (!ubirch_protocol_verify(unpacker, esp32_ed25519_verify)) {
     ESP_LOGI(TAG, "check successful");
     parse_payload(unpacker);
 } else { // verification failed }
-
+```
+- if the verification was successful, [parse the payload](main/ubirch-proto-http.h) -> 
+```c
 // new unpacked result buffer
 msgpack_unpacked result;
 msgpack_unpacked_init(&result);
@@ -228,6 +256,9 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
         if (prevSignatureMatches && (++envelope)->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
             switch ((unsigned int) envelope->via.u64) {
                 case MSGPACK_MSG_REPLY:
+```
+- compare the signatures and if they match, continue with the payload
+```c
                     if (envelope->type == MSGPACK_OBJECT_MAP) {
                         msgpack_object_kv *map = envelope->via.map.ptr;
                         for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
@@ -241,6 +272,9 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
                             //                   
                         }
                     }
+```
+
+```c
                     break;
                 case UBIRCH_PROTOCOL_TYPE_HSK:
                     //TODO handshake reply evaluation
@@ -254,3 +288,5 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
 msgpack_unpacked_destroy(&result);
 ```
 
+https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#markdown-comment
+[codelink](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#markdown-comment)

@@ -51,7 +51,7 @@
 #include "keyHandling.h"
 #include "settings.h"
 #include "sntpTime.h"
-#include "http.h"
+#include "ubirch-proto-http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
 
@@ -307,3 +307,7 @@ void create_message(void) {
     msgpack_packer_free(pk);
     ubirch_protocol_free(proto);
 }
+
+/*!
+ * ## markdown-comment
+ */

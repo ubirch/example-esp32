@@ -34,7 +34,7 @@
 
 
 #include "util.h"
-#include "http.h"
+#include "ubirch-proto-http.h"
 #include "wifi.h"
 #include "sntpTime.h"
 #include "keyHandling.h"

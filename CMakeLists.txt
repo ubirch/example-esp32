@@ -81,7 +81,7 @@ set(SOURCE_FILES
         main/util.c
         main/networkUtils.c
         main/settings.h
-        main/http.c
+        main/ubirch-proto-http.c
         )
 list (APPEND SOURCE_FILES ${SOURCES})
 

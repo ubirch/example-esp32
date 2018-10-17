@@ -1,12 +1,23 @@
 [![ubirch GmbH](files/ubirch_logo.png)](https://ubirch.de)
 
 # How To implement the ubirch protocol on the ESP32
+1. [Required packages](#Required-packages)
+    1. [ESP32-IDF](#ESP32-IDF)
+    1. [ubirch-protocol](#ubirch-protocol)
+    1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
+    1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
+    3. [example project ESP32](#example-project-ESP32)
+4. []()
+5. []()
+
+
+## Required packages
 
 The presented ubirch-protocol implementation on the ESP32 platform is 
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.
 
-## ESP32-IDF
+### ESP32-IDF
 
 The ESP32 runs on a freeRTOS operating system, customized for the espressif Controllers.
 Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com/espressif/esp-idf))
@@ -21,7 +32,7 @@ the ESP-IDF.
 
 
 
-## ubirch-protocol
+### ubirch-protocol
 
 Get the [ubirch-protocol](https://github.com/ubirch/ubirch-protocol) 
 
@@ -29,7 +40,7 @@ Get the [ubirch-protocol](https://github.com/ubirch/ubirch-protocol)
 $ git clone git@github.com:ubirch/ubirch-protocol.git
 ```
 
-## ubirch-mbed-msgpack
+### ubirch-mbed-msgpack
 
 Get the [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
 
@@ -37,7 +48,7 @@ Get the [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
 $ git clone https://github.com/ubirch/ubirch-mbed-msgpack.git
 ```
 
-## ubirch-mbed-nacl-cm0
+### ubirch-mbed-nacl-cm0
 
 Get the [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
 
@@ -46,7 +57,7 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 ```
 
 
-## Download example project ESP32
+### example project ESP32
 
 The example project [example-esp32](https://github.com/ubirch/example-esp32) can be used to implement
 an application on the ESP32, which uses the ubirch-protocol.
@@ -55,7 +66,7 @@ an application on the ESP32, which uses the ubirch-protocol.
 $ git clone https://github.com/ubirch/example-esp32.git
 ```
 
-### Basic functionality of the example
+## Basic functionality of the example
 
 - generate keys, see [keyHandling.h](main/keyHandling.h) -> createKeys()
 - store keys, see [keyHandling.h](main/keyHandling.h) -> storeKeys()
@@ -63,7 +74,7 @@ $ git clone https://github.com/ubirch/example-esp32.git
 - store the previous signature (from the last message), [keyHandling.h](main/keyHandling.h) -> storeSignature() 
 - store the public key from the backend, to verify the incoming message replies (currenty hard coded public key)
 - create a message in msgpack format, according to ubirch-protocol, see [http.h](main/http.h) -> create_message()
-- evaluate the message response (will be done automatically, when a message is created and sent)
+- evaluate the message response, see [http.h](main/http.h) -> checkResponse()
 
   
 

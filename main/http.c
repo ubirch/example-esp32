@@ -274,18 +274,22 @@ void create_message(void) {
     msgpack_pack_array(pk, 2);
 
     // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 2);
+    msgpack_pack_array(pk, 3);
     uint64_t ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
     uint32_t fake_temp = (esp_random() & 0x0F);
     msgpack_pack_int32(pk, (int32_t) (fake_temp));
+    fake_temp = (esp_random() & 0xFF);
+    msgpack_pack_int32(pk, (int32_t) (fake_temp));
     vTaskDelay(5000 / portTICK_PERIOD_MS);
 
     // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 2);
+    msgpack_pack_array(pk, 3);
     ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
     fake_temp = (esp_random() & 0x0F);
+    msgpack_pack_int32(pk, (int32_t) (fake_temp));
+    fake_temp = (esp_random() & 0xFF);
     msgpack_pack_int32(pk, (int32_t) (fake_temp));
     // finish the protocol
     ubirch_protocol_finish(proto, pk);

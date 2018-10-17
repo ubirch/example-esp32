@@ -189,7 +189,7 @@ ubirch_protocol_free(proto);
 The message response evaluation is performed in several steps, by several functions. 
 The details are discribed below in consecutive steps.
  
-- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L63)
+- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L63)
 ```c
 msgpack_unpacker *unpacker = NULL;
 ```
@@ -250,6 +250,7 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
             switch ((unsigned int) envelope->via.u64) {
                 case MSGPACK_MSG_REPLY:
 ```
+
 - compare the signatures and if they match, continue with the payload, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L225-L248)
 ```c
                     if (envelope->type == MSGPACK_OBJECT_MAP) {

@@ -68,6 +68,6 @@ void app_main(void) {
             gpio_set_level(BLUE_LED, 0);
         } else gpio_set_level(BLUE_LED, 1);
 
-        vTaskDelay(30000 / portTICK_PERIOD_MS);
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }

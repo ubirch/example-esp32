@@ -37,6 +37,7 @@
 
 #include <string.h>
 #include "freertos/FreeRTOS.h"
+#include <freertos/task.h>
 #include "esp_log.h"
 
 
@@ -46,11 +47,11 @@
 
 
 #include "esp_http_client.h"
-#include "http.h"
 #include "util.h"
 #include "keyHandling.h"
 #include "settings.h"
 #include "sntpTime.h"
+#include "http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
 
@@ -270,11 +271,21 @@ void create_message(void) {
 //    char *dataPayload = "data";
 //    msgpack_pack_raw(pk, strlen(dataPayload));
 //    msgpack_pack_raw_body(pk, dataPayload, strlen(dataPayload));
+    msgpack_pack_array(pk, 2);
+
     // create array[ timestamp, value ])
     msgpack_pack_array(pk, 2);
     uint64_t ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
     uint32_t fake_temp = (esp_random() & 0x0F);
+    msgpack_pack_int32(pk, (int32_t) (fake_temp));
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    // create array[ timestamp, value ])
+    msgpack_pack_array(pk, 2);
+    ts = getTimeUs();
+    msgpack_pack_uint64(pk, ts);
+    fake_temp = (esp_random() & 0x0F);
     msgpack_pack_int32(pk, (int32_t) (fake_temp));
     // finish the protocol
     ubirch_protocol_finish(proto, pk);

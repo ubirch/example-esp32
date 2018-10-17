@@ -65,7 +65,7 @@ $ git clone https://github.com/ubirch/example-esp32.git
 - create a message in msgpack format, according to ubirch-protocol, see [http.h](main/http.h) -> create_message()
 - evaluate the message response (will be done automatically, when a message is created and sent)
 
-## Download  
+  
 
 ## Build your application
 
@@ -92,7 +92,9 @@ or use your prefered serial console.
 
 ## Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
-To do so, the 
+
+
+
 The example already includes the functionality in [registerKeys()](main/keyHandling.h)
 
 ```C

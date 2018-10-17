@@ -189,7 +189,7 @@ ubirch_protocol_free(proto);
 The message response evaluation is performed in several steps, by several functions. 
 The details are discribed below in consecutive steps.
  
-- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L63)
+- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L63)
 ```c
 msgpack_unpacker *unpacker = NULL;
 ```

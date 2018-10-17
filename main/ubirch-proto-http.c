@@ -226,12 +226,20 @@ void parseMeasurementReply(msgpack_object *envelope) {
     if (envelope->type == MSGPACK_OBJECT_MAP) {
         msgpack_object_kv *map = envelope->via.map.ptr;
         for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
+            //
+            // UI PARAMETER SECTION
+            // ad or modify the used parameters here
+            //
             if (match(map, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
                 // read new interval setting
                 unsigned int value = (unsigned int) (map->val.via.u64);
                 ESP_LOGI(TAG, "i = %d ", value);
                 response = value;
-            } else {
+            }
+            //
+            // END OF PARAMETER SECTION
+            //
+            else {
                 ESP_LOGI(TAG, "unknown MSGPACK object in MAP");
             }
         }
@@ -265,32 +273,19 @@ void create_message(void) {
     memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
     // start the protocol
     ubirch_protocol_start(proto, pk);
-
-    // create map("data": array[ timstamp, value ])
-//    msgpack_pack_map(pk, 1);
-//    char *dataPayload = "data";
-//    msgpack_pack_raw(pk, strlen(dataPayload));
-//    msgpack_pack_raw_body(pk, dataPayload, strlen(dataPayload));
-    msgpack_pack_array(pk, 2);
-
+    //
+    // PAYLOAD SECTION
+    // add or modify the data here
+    //
     // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 3);
+    msgpack_pack_array(pk, 1);
     uint64_t ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
     uint32_t fake_temp = (esp_random() & 0x0F);
     msgpack_pack_int32(pk, (int32_t) (fake_temp));
-    fake_temp = (esp_random() & 0xFF);
-    msgpack_pack_int32(pk, (int32_t) (fake_temp));
-    vTaskDelay(5000 / portTICK_PERIOD_MS);
-
-    // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 3);
-    ts = getTimeUs();
-    msgpack_pack_uint64(pk, ts);
-    fake_temp = (esp_random() & 0x0F);
-    msgpack_pack_int32(pk, (int32_t) (fake_temp));
-    fake_temp = (esp_random() & 0xFF);
-    msgpack_pack_int32(pk, (int32_t) (fake_temp));
+    //
+    // END OF PAYLOAD
+    //
     // finish the protocol
     ubirch_protocol_finish(proto, pk);
     if (storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
@@ -307,7 +302,3 @@ void create_message(void) {
     msgpack_packer_free(pk);
     ubirch_protocol_free(proto);
 }
-
-/*!
- * #markdown-comment
- */

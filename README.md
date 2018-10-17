@@ -12,12 +12,6 @@
     1. [Key registration](#key-registration)
     1. [Message creation](#message-creation)
     1. [Message response evaluation](#message-response-evaluation)
-1. []()
-1. []()
-1. []()
-1. []()
-1. []()
-1. []()
 
 
 ## Required packages
@@ -146,7 +140,7 @@ msgpack_sbuffer_free(sbuf);
 ### Message creation
 
 After the public key is registered in the backend, messages for sensor values can be created and transmitted, 
-like in the example from [create_message](main/ubirch-proto-http.h)
+like in the example from [create_message()](main/ubirch-proto-http.h)
 
 ```C
 // create buffer, writer, ubirch protocol context and packer
@@ -163,11 +157,11 @@ memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
 // start the protocol
 ubirch_protocol_start(proto, pk);
 //
-// PAYLOAD
-// add your sensor values here
+// PAYLOAD SECTION
+// add or modify the data here
 //
 // create array[ timestamp, value ])
-msgpack_pack_array(pk, 2);
+msgpack_pack_array(pk, 1);
 uint64_t ts = getTimeUs();
 msgpack_pack_uint64(pk, ts);
 uint32_t fake_temp = (esp_random() & 0x0F);
@@ -195,16 +189,15 @@ ubirch_protocol_free(proto);
 The message response evaluation is performed in several steps, by several functions. 
 The details are discribed below in consecutive steps.
  
-- the unpacker is a global array pointer, where the data is stored
+- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L63)
 ```c
-// create a new unpacker for the receive message
 msgpack_unpacker *unpacker = NULL;
 ```
-- generate a new unpacker at the beginning of every transmission
+- generate a new unpacker at the beginning of every transmission, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L115)
 ```c
 unpacker = msgpack_unpacker_new(rcv_buffer_size);
 ```
-- store the incoming receive message data into the buffer
+- store the incoming receive message data into the buffer, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L95-L99)
 ```c
 // write the data to the unpacker    
 if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
@@ -213,14 +206,14 @@ if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
 memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
 msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
 ```
-- if the http post was successful -> status < 300, verify the response 
+- if the http post was successful -> status < 300, verify the response, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L149-L154)
 ```c
 if (!ubirch_protocol_verify(unpacker, esp32_ed25519_verify)) {
     ESP_LOGI(TAG, "check successful");
     parse_payload(unpacker);
 } else { // verification failed }
 ```
-- if the verification was successful, [parse the payload](main/ubirch-proto-http.h) -> 
+- if the verification was successful, parse the payload, , see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L160-199)
 ```c
 // new unpacked result buffer
 msgpack_unpacked result;
@@ -257,23 +250,28 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
             switch ((unsigned int) envelope->via.u64) {
                 case MSGPACK_MSG_REPLY:
 ```
-- compare the signatures and if they match, continue with the payload
+- compare the signatures and if they match, continue with the payload, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L225-L248)
 ```c
                     if (envelope->type == MSGPACK_OBJECT_MAP) {
                         msgpack_object_kv *map = envelope->via.map.ptr;
                         for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
+                            //
+                            // UI PARAMETER SECTION
+                            // ad or modify the used parameters here
+                            //
                             if (match(map, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
                                 // read new interval setting
                                 unsigned int value = (unsigned int) (map->val.via.u64);
+                                ESP_LOGI(TAG, "i = %d ", value);
                                 response = value;
-                            }
+                            } 
                             //
-                            // this is the space, where Parameters from the UI can be added
-                            //                   
+                            // END OF PARAMETER SECTION
+                            //
                         }
                     }
 ```
-
+- delete all temporary buffers, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L201-L218)
 ```c
                     break;
                 case UBIRCH_PROTOCOL_TYPE_HSK:
@@ -287,5 +285,8 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
 }
 msgpack_unpacked_destroy(&result);
 ```
+- delete the unpacker, see [(code)](https://github.com/ubirch/example-esp32/blob/main/ubirch-proto-http.c#L143)
+```c
+msgpack_unpacker_free(unpacker);
 
-[codelink](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L311)
+```

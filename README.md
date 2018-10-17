@@ -2,11 +2,11 @@
 
 # How To implement the ubirch protocol on the ESP32
 1. [Required packages](#Required-packages)
-    1. [ESP32-IDF](#ESP32-IDF)
+    1. [ESP32-IDF](#esp32-IDF)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
-    3. [example project ESP32](#example-project-ESP32)
+    3. [example project ESP32](#example-project-esp32)
 4. []()
 5. []()
 

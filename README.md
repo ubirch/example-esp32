@@ -288,5 +288,4 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
 msgpack_unpacked_destroy(&result);
 ```
 
-https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#markdown-comment
 [codelink](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#markdown-comment)

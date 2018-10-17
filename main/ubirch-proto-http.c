@@ -309,5 +309,5 @@ void create_message(void) {
 }
 
 /*!
- * ## markdown-comment
+ * #markdown-comment
  */

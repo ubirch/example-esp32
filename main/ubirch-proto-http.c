@@ -278,7 +278,7 @@ void create_message(void) {
     // add or modify the data here
     //
     // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 1);
+    msgpack_pack_array(pk, 2);
     uint64_t ts = getTimeUs();
     msgpack_pack_uint64(pk, ts);
     uint32_t fake_temp = (esp_random() & 0x0F);

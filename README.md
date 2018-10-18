@@ -7,8 +7,9 @@
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
     1. [example project ESP32](#example-project-esp32)
-        1. [settings.h](#settings.h)
 1. [Build your application](#build-your-application)
+    1. [settings.h](#settingsh)
+1. [Register your device in the Backend](#register-your-device-in-the-backend)
 1. [Basic functionality of the example](#basic-functionality-of-the-example)
     1. [Key registration](#key-registration)
     1. [Message creation](#message-creation)
@@ -69,21 +70,6 @@ an application on the ESP32, which uses the ubirch-protocol.
 ```[bash]
 $ git clone https://github.com/ubirch/example-esp32.git
 ```
-#### settings.h
-```c
-#define UHTTP_PORT 80
-#define UHTTP_HOST "unsafe.api.ubirch.dev.ubirch.com"
-#define UHTTP_URL "http://unsafe.api.ubirch.dev.ubirch.com/api/avatarService/v1/device/update/mpack"
-#define UKEY_SERVICE_PORT 80
-#define UKEY_SERVICE_HOST "unsafe.key.dev.ubirch.com"
-#define UKEY_SERVICE_URL  "http://unsafe.key.dev.ubirch.com/api/keyService/v1/pubkey/mpack"
-#endif
-
-
-#define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
-#define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
-
-```
 
 ## Build your application
 
@@ -105,6 +91,43 @@ To flash the device, type:
 To see the console output, type: 
 ``` $ make monitor```
 or use your prefered serial console.
+
+### settings.h
+
+To connect to your wifi, and also to be able to make a http request, create a file ```settings.h``` and include
+the Sservice URLs as well as the wifi settings for your wifi.
+
+```c
+// UBIRCH MESSAGE SERVICE
+#define UHTTP_PORT 80
+#define UHTTP_HOST "unsafe.api.ubirch.demo.ubirch.com"
+#define UHTTP_URL "http://unsafe.api.ubirch.demo.ubirch.com/api/avatarService/v1/device/update/mpack"
+// UBIRCH KEY SERVICE
+#define UKEY_SERVICE_PORT 80
+#define UKEY_SERVICE_HOST "unsafe.key.demo.ubirch.com"
+#define UKEY_SERVICE_URL  "http://unsafe.key.demo.ubirch.com/api/keyService/v1/pubkey/mpack"
+
+#define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
+#define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
+
+```
+
+## Register your device in the Backend
+
+To register your device ath the backend, follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html) 
+Therefore the hardware device UUID of the device is needed, which is printed out on the cerial console, 
+when the device is reseted, see below:
+
+```[bash]
+...
+hello this is Ubirch protocol on ESP32 wifi example 
+
+I (209) UUID: FFFFFFFF-FFFF-1223-3445-566778899AAB
+
+I (212) wifi: wifi driver task:.......
+...
+```
+Copy the UUID and register the device.
 
 ## Basic functionality of the example
 

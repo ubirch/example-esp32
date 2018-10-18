@@ -48,7 +48,7 @@ void print_message(const char *data, size_t size){
 void getSetUUID(void){
     esp_efuse_mac_get_default(UUID);
     esp_base_mac_addr_set(UUID);
-    ESP_LOGI("UUID", "ID: %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\r\n",
+    ESP_LOGI("UUID", " %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
              UUID[0],UUID[1],UUID[2], UUID[3], UUID[4],UUID[5],UUID[6],UUID[7],
              UUID[8], UUID[9], UUID[10],UUID[11],UUID[12], UUID[13], UUID[14],UUID[15]);
 }

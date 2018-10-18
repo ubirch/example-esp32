@@ -7,6 +7,7 @@
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
     1. [example project ESP32](#example-project-esp32)
+        1. [settings.h](#settings.h)
 1. [Build your application](#build-your-application)
 1. [Basic functionality of the example](#basic-functionality-of-the-example)
     1. [Key registration](#key-registration)
@@ -67,6 +68,21 @@ an application on the ESP32, which uses the ubirch-protocol.
 
 ```[bash]
 $ git clone https://github.com/ubirch/example-esp32.git
+```
+#### settings.h
+```c
+#define UHTTP_PORT 80
+#define UHTTP_HOST "unsafe.api.ubirch.dev.ubirch.com"
+#define UHTTP_URL "http://unsafe.api.ubirch.dev.ubirch.com/api/avatarService/v1/device/update/mpack"
+#define UKEY_SERVICE_PORT 80
+#define UKEY_SERVICE_HOST "unsafe.key.dev.ubirch.com"
+#define UKEY_SERVICE_URL  "http://unsafe.key.dev.ubirch.com/api/keyService/v1/pubkey/mpack"
+#endif
+
+
+#define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
+#define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
+
 ```
 
 ## Build your application

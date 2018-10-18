@@ -193,11 +193,11 @@ The details are discribed below in consecutive steps.
 ```c
 msgpack_unpacker *unpacker = NULL;
 ```
-- generate a new unpacker at the beginning of every transmission, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L115)
+- generate a new unpacker at the beginning of every transmission, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L115)
 ```c
 unpacker = msgpack_unpacker_new(rcv_buffer_size);
 ```
-- store the incoming receive message data into the buffer, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L95-L99)
+- store the incoming receive message data into the buffer, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L95-L99)
 ```c
 // write the data to the unpacker    
 if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
@@ -206,14 +206,14 @@ if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
 memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
 msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
 ```
-- if the http post was successful -> status < 300, verify the response, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L149-L154)
+- if the http post was successful -> status < 300, verify the response, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L149-L154)
 ```c
 if (!ubirch_protocol_verify(unpacker, esp32_ed25519_verify)) {
     ESP_LOGI(TAG, "check successful");
     parse_payload(unpacker);
 } else { // verification failed }
 ```
-- if the verification was successful, parse the payload, , see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L160-L198)
+- if the verification was successful, parse the payload, , see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L160-L198)
 ```c
 // new unpacked result buffer
 msgpack_unpacked result;
@@ -251,7 +251,7 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
                 case MSGPACK_MSG_REPLY:
 ```
 
-- compare the signatures and if they match, continue with the payload, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L226-L248)
+- compare the signatures and if they match, continue with the payload, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L226-L248)
 ```c
                     if (envelope->type == MSGPACK_OBJECT_MAP) {
                         msgpack_object_kv *map = envelope->via.map.ptr;
@@ -272,7 +272,7 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
                         }
                     }
 ```
-- delete all temporary buffers, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L201-L218)
+- delete all temporary buffers, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L201-L218)
 ```c
                     break;
                 case UBIRCH_PROTOCOL_TYPE_HSK:
@@ -286,7 +286,7 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
 }
 msgpack_unpacked_destroy(&result);
 ```
-- delete the unpacker, see [(code)](https://github.com/ubirch/example-esp32/blob/ab9261a12a0d35bb1be0c2f0b6cd18bdca93a24f/main/ubirch-proto-http.c#L143)
+- delete the unpacker, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L143)
 ```c
 msgpack_unpacker_free(unpacker);
 

@@ -82,6 +82,6 @@ uint64_t getTimeUs() {
     int64_t timer = esp_timer_get_time();
     uint64_t time_us =
             ((uint64_t) (now) * TIME_RES_SEC) + (((uint64_t) (timer) * TIME_RES_SEC / 1000000) % TIME_RES_SEC);
-    ESP_LOGI(TAG, "= %llu", time_us);
+    ESP_LOGD(TAG, "= %llu", time_us);
     return time_us;
 }

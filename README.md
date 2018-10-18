@@ -3,10 +3,10 @@
 # How To implement the ubirch protocol on the ESP32
 1. [Required packages](#required-packages)
     1. [ESP32-IDF](#esp32-idf)
+    1. [example project ESP32](#example-project-esp32)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
-    1. [example project ESP32](#example-project-esp32)
 1. [Build your application](#build-your-application)
     1. [settings.h](#settingsh)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
@@ -22,6 +22,20 @@ The presented ubirch-protocol implementation on the ESP32 platform is
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.
 
+Use this path structure for the packages:
+```[bash]
+  …
+  - /ESP-IDF-DIR
+                /ESP32-IDF
+  …
+  - /PROJECT-DIR
+                /example-esp32
+                /ubirch-protocol
+                /ubirch-mbed-msgpack
+                /ubirch-mbed-nacl-cm0
+  …
+```
+
 ### ESP32-IDF
 
 The ESP32 runs on a freeRTOS operating system, customized for the espressif Controllers.
@@ -35,6 +49,14 @@ $ git clone git@github.com:espressif/esp-idf.git
 Use the [guide](https://docs.espressif.com/projects/esp-idf/en/latest/) to install and configure
 the ESP-IDF.
 
+### example project ESP32
+
+The example project [example-esp32](https://github.com/ubirch/example-esp32) can be used to implement
+an application on the ESP32, which uses the ubirch-protocol.
+
+```[bash]
+$ git clone https://github.com/ubirch/example-esp32.git
+```
 
 
 ### ubirch-protocol
@@ -62,15 +84,6 @@ $ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 ```
 
 
-### example project ESP32
-
-The example project [example-esp32](https://github.com/ubirch/example-esp32) can be used to implement
-an application on the ESP32, which uses the ubirch-protocol.
-
-```[bash]
-$ git clone https://github.com/ubirch/example-esp32.git
-```
-
 ## Build your application
 
 To build an application, a customary make file [component.mk](main/component.mk) is required, which
@@ -83,7 +96,7 @@ or
 ``` $ make app```
 
 To cleanup the build directory type:
-``` $ make clear```
+``` $ make clean```
 
 To flash the device, type:
 ``` $ make flash```
@@ -94,8 +107,8 @@ or use your prefered serial console.
 
 ### settings.h
 
-To connect to your wifi, and also to be able to make a http request, create a file ```settings.h``` and include
-the Sservice URLs as well as the wifi settings for your wifi.
+To connect to your wifi, and also to be able to make a http request, create a file ```settings.h``` in the 
+ ```/example-esp32/main/``` directory and include the service URLs as well as the wifi settings for your wifi.
 
 ```c
 // UBIRCH MESSAGE SERVICE
@@ -131,20 +144,19 @@ Copy the UUID and register the device.
 
 ## Basic functionality of the example
 
-- generate keys, see [keyHandling.h](main/keyHandling.h) -> createKeys()
-- store keys, see [keyHandling.h](main/keyHandling.h) -> storeKeys()
-- register keys at the backend, see [keyHandling.h](main/keyHandling.h) -> registerKeys()
-- store the previous signature (from the last message), [keyHandling.h](main/keyHandling.h) -> storeSignature() 
-- store the public key from the backend, to verify the incoming message replies (currenty hard coded public key)
-- create a message in msgpack format, according to ubirch-protocol, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> create_message()
-- make a http post request, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> http_post_task()
-- evaluate the message response, see [ubirch-proto-http.h](main/ubirch-proto-http.h) -> checkResponse()
+- generate keys, see [createKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L40)
+- store keys, see [storeKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L64)
+- register keys at the backend, see [registerKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L89)
+- store the previous signature (from the last message), [storeSignature()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L84)
+- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.c#L49-L54))
+- create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L77)
+- make a http post request, see [http_post_task()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L49)
+- evaluate the message response, see [checkResponse()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
+- react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
 
 
 ### Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
-
-
 
 The example already includes the functionality in [registerKeys()](main/keyHandling.h)
 

@@ -17,7 +17,7 @@ export IDF_PATH=`brew --prefix esp-idf
 
 > For use with CLion also add the config file: 
 >	```
->	echo `brew --prefix esp-idf` > ~/.idf
+>	echo `brew --prefix esp-idf` > ~/.idf`
 >	```
 
 ## Compile and install 

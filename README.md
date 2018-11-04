@@ -121,7 +121,7 @@ To connect to your wifi, and also to be able to make a http request, create a fi
 
 #define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
 #define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
-
+#define UBIRCH_AUTH "ubirch-dev::<YOURTOKEN>::<SIGNATURE>"
 ```
 
 ## Register your device in the Backend

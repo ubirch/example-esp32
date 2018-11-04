@@ -125,6 +125,7 @@ void http_post_task(const char *url, const char *data, const size_t length) {
     esp_http_client_set_url(client, url);
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/octet-stream");
+    esp_http_client_set_header(client, "Authorization", UBIRCH_AUTH);
     esp_http_client_set_post_field(client, data, (int) (length));
     esp_err_t err = esp_http_client_perform(client);
     bool success = false;

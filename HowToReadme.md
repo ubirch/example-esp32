@@ -64,9 +64,17 @@ $ git clone https://github.com/ubirch/example-esp32.git
 
 ## Build your application
 
-To build an application, a customary make file [component.mk](main/component.mk) is required, which
+To build an application, a cmake installation is required, which
 connects the application to the IDF and allows to build the complete firmware and also to use the IDF 
 make commands. 
+
+To prepare your workspace, use the following commands:
+
+```bash
+$ mkdir build
+$ cd build
+$ cmake ..
+```
 
 To build the application type:
 ``` $ make all``` 

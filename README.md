@@ -6,7 +6,6 @@
     1. [example project ESP32](#example-project-esp32)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
-    1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
 1. [Build your application](#build-your-application)
     1. [settings.h](#settingsh)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
@@ -30,9 +29,8 @@ Use this path structure for the packages:
   …
   - /PROJECT-DIR
                 /example-esp32
-                /ubirch-protocol
-                /ubirch-mbed-msgpack
-                /ubirch-mbed-nacl-cm0
+                /example-esp32/ubirch-protocol
+                /example-esp32/ubirch-mbed-msgpack
   …
 ```
 
@@ -54,16 +52,17 @@ the ESP-IDF.
 The example project [example-esp32](https://github.com/ubirch/example-esp32) can be used to implement
 an application on the ESP32, which uses the ubirch-protocol.
 
-```[bash]
+```bash
 $ git clone https://github.com/ubirch/example-esp32.git
 ```
 
+> Clone the following libraries within `example-esp32`
 
 ### ubirch-protocol
 
 Get the [ubirch-protocol](https://github.com/ubirch/ubirch-protocol) 
 
-```[bash]
+```bash
 $ git clone git@github.com:ubirch/ubirch-protocol.git
 ```
 
@@ -71,24 +70,24 @@ $ git clone git@github.com:ubirch/ubirch-protocol.git
 
 Get the [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
 
-```[bash]
+```bash
 $ git clone https://github.com/ubirch/ubirch-mbed-msgpack.git
-```
-
-### ubirch-mbed-nacl-cm0
-
-Get the [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
-
-```[bash]
-$ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
 ```
 
 
 ## Build your application
 
-To build an application, a customary make file [component.mk](main/component.mk) is required, which
+To build an application, a cmake installation is required, which
 connects the application to the IDF and allows to build the complete firmware and also to use the IDF 
 make commands. 
+
+To prepare your workspace, use the following commands:
+
+```bash
+$ mkdir build
+$ cd build
+$ cmake ..
+```
 
 To build the application type:
 ``` $ make all``` 
@@ -99,7 +98,7 @@ To cleanup the build directory type:
 ``` $ make clean```
 
 To flash the device, type:
-``` $ make flash```
+``` $ make app-flash```
 
 To see the console output, type: 
 ``` $ make monitor```
@@ -122,7 +121,7 @@ To connect to your wifi, and also to be able to make a http request, create a fi
 
 #define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
 #define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
-
+#define UBIRCH_AUTH "ubirch-dev::<YOURTOKEN>::<SIGNATURE>"
 ```
 
 ## Register your device in the Backend

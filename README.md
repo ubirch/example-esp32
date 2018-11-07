@@ -6,6 +6,7 @@
     1. [example project ESP32](#example-project-esp32)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
+    1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
 1. [Build your application](#build-your-application)
     1. [settings.h](#settingsh)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
@@ -31,6 +32,7 @@ Use this path structure for the packages:
                 /example-esp32
                 /example-esp32/ubirch-protocol
                 /example-esp32/ubirch-mbed-msgpack
+                /example-esp32/ubirch-mbed-nacl-cm0
   …
 ```
 
@@ -41,7 +43,7 @@ Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com
 has to be downloaded and set up.
 
 ```[bash]
-$ git clone git@github.com:espressif/esp-idf.git
+$ git clone https://github.com/espressif/esp-idf.git
 ```
 
 Use the [guide](https://docs.espressif.com/projects/esp-idf/en/latest/) to install and configure
@@ -63,7 +65,7 @@ $ git clone https://github.com/ubirch/example-esp32.git
 Get the [ubirch-protocol](https://github.com/ubirch/ubirch-protocol) 
 
 ```bash
-$ git clone git@github.com:ubirch/ubirch-protocol.git
+$ git clone https://github.com/ubirch/ubirch-protocol.git
 ```
 
 ### ubirch-mbed-msgpack
@@ -74,6 +76,13 @@ Get the [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
 $ git clone https://github.com/ubirch/ubirch-mbed-msgpack.git
 ```
 
+### ubirch-mbed-nacl-cm0
+
+Get the [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
+
+```bash
+$ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
+```
 
 ## Build your application
 

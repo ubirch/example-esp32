@@ -15,6 +15,8 @@ if (NOT ENV{IDF_PATH})
 endif()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
+add_definitions(-DESP_PLATFORM -DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+
 #set(CMAKE_VERBOSE_MAKEFILE 1)
 set(MSGPACK_SRCS
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/objectc.c
@@ -23,7 +25,15 @@ set(MSGPACK_SRCS
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/vrefbuffer.c
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/zone.c)
 
-set(UBIRCH_PROTOCOL_SRCS ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/ubirch_protocol_kex.c)
+set(UBIRCH_PROTOCOL_SRCS
+        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/ubirch_protocol_kex.c
+        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/digest/sha512.c)
+
+
+
+set(UBIRCH_NACL_PATH ubirch-mbed-nacl-cm0)
+file(GLOB_RECURSE NACL_SOURCES "${UBIRCH_NACL_PATH}/*.c")
+
 
 set(MAIN_SRCS
         main/main.c
@@ -34,14 +44,31 @@ set(MAIN_SRCS
         main/settings.h
         main/ubirch-proto-http.c
         ${MSGPACK_SRCS}
-        ${UBIRCH_PROTOCOL_SRCS})
+        ${UBIRCH_PROTOCOL_SRCS}
+        )
 
-add_definitions(-DESP_PLATFORM -DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+
+list(APPEND MAIN_SRCS ${NACL_SOURCES})
+
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(example-esp32)
 
-include_directories(ubirch-mbed-msgpack ubirch-protocol/ubirch)
+include_directories(
+        ubirch-mbed-msgpack
+        ubirch-mbed-nacl-cm0
+        ubirch-mbed-nacl-cm0/source/nacl
+        ubirch-mbed-nacl-cm0/source/nacl/crypto_sign
+        ubirch-mbed-nacl-cm0/source/nacl/crypto_hash
+        ubirch-mbed-nacl-cm0/source/nacl/crypto_hashblocks
+        ubirch-mbed-nacl-cm0/source/nacl/include
+        ubirch-mbed-nacl-cm0/source/nacl/crypto_verify
+        ubirch-mbed-nacl-cm0/source/nacl/shared
+        ubirch-mbed-nacl-cm0/source/randombytes
+        ubirch-protocol/ubirch
+        ubirch-protocol/ubirch/digest
+        main
+)
 
 
 

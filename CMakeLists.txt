@@ -2,22 +2,33 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-
-# NOTE: This file is only used for configuring CLion, use regular `make` for building.
-
-if (NOT ENV{IDF_PATH})
+# check and set the IDF_PATH
+message(STATUS "$ENV{IDF_PATH}")
+if (NOT DEFINED ENV{IDF_PATH})
     if (EXISTS "$ENV{HOME}/.idf")
         file(STRINGS "$ENV{HOME}/.idf" IDF_PATH)
         set(ENV{IDF_PATH} ${IDF_PATH})
     else ()
         message(FATAL_ERROR "ESP-IDF: set $ESP_IDF environment variable or write path to file $ENV{HOME}/.idf")
     endif ()
-endif()
+else ()
+    set(IDF_PATH $ENV{IDF_PATH})
+endif ()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
-add_definitions(-DESP_PLATFORM -DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+# add some necessary defnitions
+add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
+
+# check that necessary sub-projects are available
+# msgpack implementation
+if (NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack)
+    message(FATAL_ERROR "required library ubirch-mbed-msgpack missing, checkout from github:\n"
+            "$ git clone https://github.com/ubirch/ubirch-mbed-msgpack"
+            )
+endif ()
+
 set(MSGPACK_SRCS
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/objectc.c
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/unpack.c
@@ -25,16 +36,28 @@ set(MSGPACK_SRCS
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/vrefbuffer.c
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/zone.c)
 
-set(UBIRCH_PROTOCOL_SRCS
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/ubirch_protocol_kex.c
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/digest/sha512.c)
-
-
+# ED25519 implementation
+if (NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-nacl-cm0)
+    message(FATAL_ERROR "required library ubirch-mbed-nacl-cm0 missing, checkout from github:\n"
+            "$ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0"
+            )
+endif ()
 
 set(UBIRCH_NACL_PATH ubirch-mbed-nacl-cm0)
 file(GLOB_RECURSE NACL_SOURCES "${UBIRCH_NACL_PATH}/*.c")
 
+# ubirch protocol
+if (NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol)
+    message(FATAL_ERROR "required library ubirch-protocol missing, checkout from github:\n"
+            "$ git clone https://github.com/ubirch/ubirch-protocol"
+            )
+endif ()
 
+set(UBIRCH_PROTOCOL_SRCS
+        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/ubirch_protocol_kex.c
+        ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/digest/sha512.c)
+
+# sources of our project, including dependent libraries
 set(MAIN_SRCS
         main/main.c
         main/sntpTime.c
@@ -47,11 +70,11 @@ set(MAIN_SRCS
         ${UBIRCH_PROTOCOL_SRCS}
         )
 
-
 list(APPEND MAIN_SRCS ${NACL_SOURCES})
 
-
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+
+# now configure the project
 project(example-esp32)
 
 include_directories(

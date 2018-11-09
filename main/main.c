@@ -63,7 +63,7 @@ void app_main(void) {
 
     while (true) {
         create_message();
-        // let the
+        // let the LED blink
         if (response < 1000) {
             gpio_set_level(BLUE_LED, 0);
         } else gpio_set_level(BLUE_LED, 1);

@@ -17,7 +17,10 @@ endif ()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
 # add some necessary defnitions
-add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+add_definitions(-DESP_PLATFORM -DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+
+# set the components, EXCLUDING libsodium, because of the conflict with ubirch-mbed-nacl-cm0
+set(COMPONENTS soc;log;heap;freertos;vfs;newlib;esp_ringbuf;driver;esp_event;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;asio;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;tcp_transport;esp_http_client;esp_http_server;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;freemodbus;idf_test;json;mdns;mqtt;openssl;protobuf-c;protocomm;spiffs;ulp;wifi_provisioning)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
 
@@ -92,6 +95,3 @@ include_directories(
         ubirch-protocol/ubirch/digest
         main
 )
-
-
-

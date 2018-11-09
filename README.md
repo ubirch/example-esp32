@@ -1,4 +1,4 @@
-[![ubirch GmbH](files/ubirch_logo.png)](https://ubirch.de)
+[![ubirch GmbH](files/cropped-uBirch_Logo.png)](https://ubirch.de)
 
 # How To implement the ubirch protocol on the ESP32
 1. [Required packages](#required-packages)

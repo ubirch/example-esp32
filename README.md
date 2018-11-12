@@ -17,7 +17,7 @@
 
 
 ## Required packages
-
+ 
 The presented ubirch-protocol implementation on the ESP32 platform is 
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.

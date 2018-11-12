@@ -34,7 +34,7 @@
 
 
 #include "util.h"
-#include "ubirch-proto-http.h"
+#include "ubirch_proto_http.h"
 #include "wifi.h"
 #include "sntp_time.h"
 #include "key_handling.h"
@@ -60,6 +60,17 @@ void app_main(void) {
     register_keys();
     // set the blue LED pin on the ESP32 DEVKIT V1 board
     gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
+
+    char buuuffer[100] = {};
+
+    scanf(buuuffer);
+    printf("buffer1 = %s", buuuffer);
+
+    scanf(buuuffer);
+    printf("buffer2 = %s", buuuffer);
+
+    scanf(buuuffer);
+    printf("buffer3 = %s", buuuffer);
 
     while (true) {
         create_message();

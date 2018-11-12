@@ -34,7 +34,7 @@
 #include "ubirch_protocol_kex.h"
 
 #include "util.h"
-#include "ubirch-proto-http.h"
+#include "ubirch_proto_http.h"
 #include "settings.h"
 #include "key_handling.h"
 

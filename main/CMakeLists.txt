@@ -45,7 +45,7 @@ set(COMPONENT_SRCS
         key_handling.c
         util.c
         settings.h
-        ubirch-proto-http.c
+        ubirch_proto_http.c
         ${MSGPACK_SRCS}
         ${UBIRCH_PROTOCOL_SRCS}
         ${NACL_SRCS}

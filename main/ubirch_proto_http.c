@@ -51,7 +51,7 @@
 #include "key_handling.h"
 #include "settings.h"
 #include "sntp_time.h"
-#include "ubirch-proto-http.h"
+#include "ubirch_proto_http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
 

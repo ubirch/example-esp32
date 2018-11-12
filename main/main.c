@@ -36,8 +36,8 @@
 #include "util.h"
 #include "ubirch-proto-http.h"
 #include "wifi.h"
-#include "sntpTime.h"
-#include "keyHandling.h"
+#include "sntp_time.h"
+#include "key_handling.h"
 
 char *TAG = "example-esp32";
 
@@ -50,14 +50,14 @@ extern int response;
 void app_main(void) {
     printf("\r\n hello this is Ubirch protocol on ESP32 wifi example \r\n\n");
     nvs_flash_init();
-    getSetUUID();
+    get_set_UUID();
 
     my_wifi_init();
 
     obtain_time();
-    checkKeyStatus();
+    check_key_status();
 
-    registerKeys();
+    register_keys();
     // set the blue LED pin on the ESP32 DEVKIT V1 board
     gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
 

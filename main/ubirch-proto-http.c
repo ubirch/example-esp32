@@ -48,9 +48,9 @@
 
 #include "esp_http_client.h"
 #include "util.h"
-#include "keyHandling.h"
+#include "key_handling.h"
 #include "settings.h"
-#include "sntpTime.h"
+#include "sntp_time.h"
 #include "ubirch-proto-http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
@@ -182,7 +182,7 @@ void parse_payload(msgpack_unpacker *unpacker) {
         if (p_version == proto_chained) {
             // previous message signature (from our request message)
             unsigned char prev_signature[UBIRCH_PROTOCOL_SIGN_SIZE];
-            if (loadSignature(prev_signature)) {
+            if (load_signature(prev_signature)) {
                 ESP_LOGW(TAG, "error loading signature");
             }
             // compare the previous signature to the received one
@@ -200,7 +200,7 @@ void parse_payload(msgpack_unpacker *unpacker) {
                 ESP_LOGI(TAG, "TYPE: %d\r\n", (unsigned int) envelope->via.u64);
                 switch ((unsigned int) envelope->via.u64) {
                     case MSGPACK_MSG_REPLY:
-                        parseMeasurementReply(++envelope);
+                        parse_measurement_reply(++envelope);
                         break;
                     case UBIRCH_PROTOCOL_TYPE_HSK:
                         //TODO handshake reply evaluation
@@ -225,7 +225,7 @@ void parse_payload(msgpack_unpacker *unpacker) {
 int response = 0;
 
 
-void parseMeasurementReply(msgpack_object *envelope) {
+void parse_measurement_reply(msgpack_object *envelope) {
     ESP_LOGI(TAG, "measurement reply");
     if (envelope->type == MSGPACK_OBJECT_MAP) {
         msgpack_object_kv *map = envelope->via.map.ptr;
@@ -271,7 +271,7 @@ void create_message(void) {
     msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
     // load the old signature and copy it to the protocol
     unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
-    if (loadSignature(old_signature)) {
+    if (load_signature(old_signature)) {
         ESP_LOGW(TAG, "error loading the old signature");
     }
     memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
@@ -283,7 +283,7 @@ void create_message(void) {
     //
     // create array[ timestamp, value ])
     msgpack_pack_array(pk, 2);
-    uint64_t ts = getTimeUs();
+    uint64_t ts = get_time_us();
     msgpack_pack_uint64(pk, ts);
     uint32_t fake_temp = (esp_random() & 0x0F);
     msgpack_pack_int32(pk, (int32_t) (fake_temp));
@@ -292,7 +292,7 @@ void create_message(void) {
     //
     // finish the protocol
     ubirch_protocol_finish(proto, pk);
-    if (storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
+    if (store_signature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
         ESP_LOGW(TAG, "error storing the signature");
     }
 #ifdef DEBUG_MESSAGE

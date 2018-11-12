@@ -40,6 +40,6 @@ void obtain_time(void);
 /*
  * Get the current time in microseconds accuracy
  */
-uint64_t getTimeUs();
+uint64_t get_time_us();
 
 #endif /* SNTP_TIME_H */

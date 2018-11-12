@@ -1,6 +1,8 @@
 
+#set the project root directory
 set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR}/..)
 
+# msgpack implementation
 if (NOT EXISTS ${PROJECT_ROOT}/ubirch-mbed-msgpack)
     message(FATAL_ERROR "required library ubirch-mbed-msgpack missing, checkout from github:\n"
             "$ git clone https://github.com/ubirch/ubirch-mbed-msgpack"
@@ -22,7 +24,7 @@ if (NOT EXISTS ${PROJECT_ROOT}/ubirch-mbed-nacl-cm0)
 endif ()
 
 set(UBIRCH_NACL_PATH ${PROJECT_ROOT}/ubirch-mbed-nacl-cm0)
-file(GLOB_RECURSE NACL_SOURCES "${UBIRCH_NACL_PATH}/*.c")
+file(GLOB_RECURSE NACL_SRCS "${UBIRCH_NACL_PATH}/*.c")
 
 # ubirch protocol
 if (NOT EXISTS ${PROJECT_ROOT}/ubirch-protocol)
@@ -38,15 +40,15 @@ set(UBIRCH_PROTOCOL_SRCS
 
 set(COMPONENT_SRCS
         main.c
-        sntpTime.c
+        sntp_time.c
         wifi.c
-        keyHandling.c
+        key_handling.c
         util.c
         settings.h
         ubirch-proto-http.c
         ${MSGPACK_SRCS}
         ${UBIRCH_PROTOCOL_SRCS}
-        ${NACL_SOURCES}
+        ${NACL_SRCS}
         )
 
 

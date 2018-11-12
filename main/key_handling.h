@@ -37,7 +37,7 @@ extern "C" {
 /*!
  * Create a new signature Key pair
  */
-void createKeys(void);
+void create_keys(void);
 
 /*!
  * Check for possible memory handling errors
@@ -45,7 +45,7 @@ void createKeys(void);
  * @return true, if memory error,
  * @return false if no error
  */
-bool memoryErrorCheck(esp_err_t err);
+bool memory_error_check(esp_err_t err);
 
 /*!
  * Read the Key values from memory
@@ -53,7 +53,7 @@ bool memoryErrorCheck(esp_err_t err);
  * @return true, if something went wrong,
  * @return false if keys are available
  */
-bool loadKeys(void);
+bool load_keys(void);
 
 /*!
  * Write the key values to the memory
@@ -61,7 +61,7 @@ bool loadKeys(void);
  * @return true, if something went wrong,
  * @return false if keys were successfully stored
  */
-bool storeKeys(void);
+bool store_keys(void);
 
 /*!
  * Load the last signature
@@ -71,7 +71,7 @@ bool storeKeys(void);
  * @return  true, if something went wrong,
  * @return  false if keys were successfully stored
  */
-bool loadSignature(unsigned char *signature);
+bool load_signature(unsigned char *signature);
 
 /*!
  * Store the last signature.
@@ -81,18 +81,18 @@ bool loadSignature(unsigned char *signature);
  *
  * @return error: true if signature could not be stored, false otherwise
  */
-bool storeSignature(const unsigned char *signature, size_t size_sig);
+bool store_signature(const unsigned char *signature, size_t size_sig);
 
 /*!
  * Register the Keys in the backend.
  */
-void registerKeys(void);
+void register_keys(void);
 
 /*!
  * Check the current key status.
  * If no keys are present, create new keys and register them at the backend
  */
-void checkKeyStatus(void);
+void check_key_status(void);
 
 
 /*!

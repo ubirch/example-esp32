@@ -63,7 +63,7 @@ void parse_payload(msgpack_unpacker *unpacker);
  * Parse a measurement packet reply.
  * @param envelope the packet envelope at the point where the payload starts
  */
-void parseMeasurementReply(msgpack_object *envelope);
+void parse_measurement_reply(msgpack_object *envelope);
 
 /*!
  * Helper function, checking a specific key in a msgpack map.

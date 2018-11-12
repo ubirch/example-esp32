@@ -25,10 +25,7 @@
 
 #include <esp_log.h>
 #include "lwip/apps/sntp.h"
-//#include <sched.h>
-//#include <freertos/task.h>
-//#include <time.h>
-#include "sntpTime.h"
+#include "sntp_time.h"
 
 #define TIME_RES_SEC 1000000
 
@@ -76,7 +73,7 @@ void obtain_time(void) {
 /*
  * Get the current time in microseconds accuracy
  */
-uint64_t getTimeUs() {
+uint64_t get_time_us() {
     char *TAG = "time in us";
     time_t now = time(NULL);
     int64_t timer = esp_timer_get_time();

@@ -37,6 +37,6 @@ void print_message(const char *data, size_t size);
 /*!
  * Get the MAC address of the device and generate the UUID from it.
  */
-void getSetUUID(void);
+void get_set_UUID(void);
 
 #endif /* UTIL_H */

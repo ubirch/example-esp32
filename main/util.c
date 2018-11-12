@@ -45,7 +45,7 @@ void print_message(const char *data, size_t size){
     printf("\r\n");
 }
 
-void getSetUUID(void){
+void get_set_UUID(void) {
     esp_efuse_mac_get_default(UUID);
     esp_base_mac_addr_set(UUID);
     ESP_LOGI("UUID", " %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",

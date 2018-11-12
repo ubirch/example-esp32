@@ -152,11 +152,11 @@ Copy the UUID and register the device.
 
 ## Basic functionality of the example
 
-- generate keys, see [createKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L40)
-- store keys, see [storeKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L64)
-- register keys at the backend, see [registerKeys()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L89)
-- store the previous signature (from the last message), [storeSignature()](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.h#L84)
-- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/keyHandling.c#L49-L54))
+- generate keys, see [create_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L40)
+- store keys, see [store_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L64)
+- register keys at the backend, see [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L89)
+- store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L84)
+- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L49-L54))
 - create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L77)
 - make a http post request, see [http_post_task()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L49)
 - evaluate the message response, see [checkResponse()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
@@ -166,7 +166,7 @@ Copy the UUID and register the device.
 ### Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
 
-The example already includes the functionality in [registerKeys()](main/keyHandling.h)
+The example already includes the functionality in [register_keys()](main/key_handling.h)
 
 ```C
 // create buffer, protocol and packer
@@ -209,7 +209,7 @@ ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
 msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
 // load the old signature and copy it to the protocol
 unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
-if (loadSignature(old_signature)) {
+if (load_signature(old_signature)) {
     ESP_LOGW(TAG, "error loading the old signature");
 }
 memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
@@ -221,7 +221,7 @@ ubirch_protocol_start(proto, pk);
 //
 // create array[ timestamp, value ])
 msgpack_pack_array(pk, 1);
-uint64_t ts = getTimeUs();
+uint64_t ts = get_time_us();
 msgpack_pack_uint64(pk, ts);
 uint32_t fake_temp = (esp_random() & 0x0F);
 msgpack_pack_int32(pk, (int32_t) (fake_temp));
@@ -230,7 +230,7 @@ msgpack_pack_int32(pk, (int32_t) (fake_temp));
 //
 // finish the protocol
 ubirch_protocol_finish(proto, pk);
-if (storeSignature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
+if (store_signature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
     ESP_LOGW(TAG, "error storing the signature");
 }
 // send the message
@@ -294,7 +294,7 @@ if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJE
     if (p_version == proto_chained) {
         // previous message signature (from our request message)
         unsigned char prev_signature[UBIRCH_PROTOCOL_SIGN_SIZE];
-        if (loadSignature(prev_signature)) {
+        if (load_signature(prev_signature)) {
         }
         // compare the previous signature to the received one
         bool prevSignatureMatches = false;

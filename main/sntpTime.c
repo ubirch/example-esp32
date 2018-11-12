@@ -24,10 +24,10 @@
  */
 
 #include <esp_log.h>
-#include "apps/sntp/sntp.h"
-#include <sched.h>
-#include <freertos/task.h>
-#include <time.h>
+#include "lwip/apps/sntp.h"
+//#include <sched.h>
+//#include <freertos/task.h>
+//#include <time.h>
 #include "sntpTime.h"
 
 #define TIME_RES_SEC 1000000

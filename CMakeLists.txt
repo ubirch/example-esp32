@@ -2,46 +2,31 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-
-# NOTE: This file is only used for configuring CLion, use regular `make` for building.
-
-if (NOT ENV{IDF_PATH})
+# check and set the IDF_PATH
+message(STATUS "$ENV{IDF_PATH}")
+if (NOT DEFINED ENV{IDF_PATH})
     if (EXISTS "$ENV{HOME}/.idf")
         file(STRINGS "$ENV{HOME}/.idf" IDF_PATH)
         set(ENV{IDF_PATH} ${IDF_PATH})
     else ()
         message(FATAL_ERROR "ESP-IDF: set $ESP_IDF environment variable or write path to file $ENV{HOME}/.idf")
     endif ()
-endif()
+else ()
+    set(IDF_PATH "/home/ESP/test2/esp-idf")
+endif ()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
+# add some necessary defnitions
+add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+
+# set the components, EXCLUDING libsodium, because of the conflict with ubirch-mbed-nacl-cm0
+set(COMPONENTS soc;log;heap;freertos;vfs;newlib;esp_ringbuf;driver;esp_event;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;asio;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;tcp_transport;esp_http_client;esp_http_server;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;freemodbus;idf_test;json;mdns;mqtt;openssl;protobuf-c;protocomm;spiffs;ulp;wifi_provisioning)
+
+list(APPEND COMPONENTS main)
 #set(CMAKE_VERBOSE_MAKEFILE 1)
-set(MSGPACK_SRCS
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/objectc.c
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/unpack.c
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/version.c
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/vrefbuffer.c
-        ${CMAKE_CURRENT_LIST_DIR}/ubirch-mbed-msgpack/zone.c)
-
-set(UBIRCH_PROTOCOL_SRCS ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol/ubirch/ubirch_protocol_kex.c)
-
-set(MAIN_SRCS
-        main/main.c
-        main/sntpTime.c
-        main/wifi.c
-        main/keyHandling.c
-        main/util.c
-        main/settings.h
-        main/ubirch-proto-http.c
-        ${MSGPACK_SRCS}
-        ${UBIRCH_PROTOCOL_SRCS})
-
-add_definitions(-DESP_PLATFORM -DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+
+# now configure the project
 project(example-esp32)
-
-include_directories(ubirch-mbed-msgpack ubirch-protocol/ubirch)
-
-
 

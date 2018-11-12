@@ -157,16 +157,16 @@ Copy the UUID and register the device.
 - register keys at the backend, see [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L89)
 - store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L84)
 - store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L49-L54))
-- create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L77)
+- create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L80)
 - make a http post request, see [http_post_task()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L49)
-- evaluate the message response, see [checkResponse()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
+- evaluate the message response, see [check_response()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
 - react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
 
 
 ### Key registration
 The public key of the ESP32 aplication has to be provided to the backend. 
 
-The example already includes the functionality in [register_keys()](main/key_handling.h)
+The example already includes the functionality in [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L215-L242)
 
 ```C
 // create buffer, protocol and packer
@@ -199,7 +199,7 @@ msgpack_sbuffer_free(sbuf);
 ### Message creation
 
 After the public key is registered in the backend, messages for sensor values can be created and transmitted, 
-like in the example from [create_message()](main/ubirch-proto-http.h)
+like in the example from [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L266-L309)
 
 ```C
 // create buffer, writer, ubirch protocol context and packer

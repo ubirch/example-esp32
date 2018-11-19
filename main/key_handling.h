@@ -28,6 +28,7 @@
 #define KEY_HANDLING_H
 
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,24 +65,15 @@ bool load_keys(void);
 bool store_keys(void);
 
 /*!
- * Load the last signature
+ * Get the public key and print it on the console.
  *
- * @param   signature pointer to signature array
- *
- * @return  true, if something went wrong,
- * @return  false if keys were successfully stored
+ * @param key_buffer string converted hex buffer
+ * @return true, if public key exists,
+ * @return false, if no public key exists
  */
-bool load_signature(unsigned char *signature);
+bool get_public_key(char *key_buffer);
 
-/*!
- * Store the last signature.
- *
- * @param signature pointer to signature array
- * @param size_sig size of the signature array
- *
- * @return error: true if signature could not be stored, false otherwise
- */
-bool store_signature(const unsigned char *signature, size_t size_sig);
+
 
 /*!
  * Register the Keys in the backend.

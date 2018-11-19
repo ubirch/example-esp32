@@ -21,6 +21,7 @@
  * limitations under the License.
  * ```
  */
+#include <string.h>
 #include <tcpip_adapter.h>
 #include <esp_event_loop.h>
 #include <esp_wifi.h>
@@ -66,26 +67,38 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-/*
- * Initialize the wifi module
- */
-void my_wifi_init(void){
+
+static void initialise_wifi(void) {
+    esp_log_level_set("wifi", ESP_LOG_WARN);
+    static bool initialized = false;
+    if (initialized) {
+        return;
+    }
     tcpip_adapter_init();
     wifi_event_group = xEventGroupCreate();
     ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    wifi_config_t sta_config = {
-            .sta = {
-                    .ssid = EXAMPLE_WIFI_SSID,
-                    .password = EXAMPLE_WIFI_PASS,
-                    .bssid_set = false
-            }
-    };
-    ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", sta_config.sta.ssid);
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    initialized = true;
+}
+
+bool wifi_join(const char *ssid, const char *pass, int timeout_ms) {
+    initialise_wifi();
+    wifi_config_t wifi_config = {0};
+    strncpy((char *) wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
+    if (pass) {
+        strncpy((char *) wifi_config.sta.password, pass, sizeof(wifi_config.sta.password));
+    }
+
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_STA, &sta_config) );
-    ESP_ERROR_CHECK( esp_wifi_start() );
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_connect());
+
+    int bits = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
+                                   1, 1, timeout_ms / portTICK_PERIOD_MS);
+
+    return (bits & CONNECTED_BIT) != 0;
 }

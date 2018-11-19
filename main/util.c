@@ -37,7 +37,6 @@ unsigned char UUID[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
  * print out hex data on console output
  */
 void print_message(const char *data, size_t size){
-    printf("MESSAGE: ");
     int i = 0;
     for (i = 0; i < size; ++i) {
         printf("%02x",data[i]);
@@ -45,10 +44,14 @@ void print_message(const char *data, size_t size){
     printf("\r\n");
 }
 
-void get_set_UUID(void) {
+void set_hw_ID(void) {
     esp_efuse_mac_get_default(UUID);
     esp_base_mac_addr_set(UUID);
-    ESP_LOGI("UUID", " %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
+}
+
+void get_hw_ID(void) {
+    ESP_LOGI("Hardware-Device-ID", " %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
              UUID[0],UUID[1],UUID[2], UUID[3], UUID[4],UUID[5],UUID[6],UUID[7],
              UUID[8], UUID[9], UUID[10],UUID[11],UUID[12], UUID[13], UUID[14],UUID[15]);
+
 }

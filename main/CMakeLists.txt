@@ -49,6 +49,11 @@ set(COMPONENT_SRCS
         ${MSGPACK_SRCS}
         ${UBIRCH_PROTOCOL_SRCS}
         ${NACL_SRCS}
+        cmd_system.c
+        ubirch_console.c
+        console_cmd.c
+        storage.c
+        temp_temp.c
         )
 
 
@@ -66,6 +71,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
         ${PROJECT_ROOT}/ubirch-protocol/ubirch
         ${PROJECT_ROOT}/ubirch-protocol/ubirch/digest
         ${CMAKE_CURRENT_LIST_DIR}
+        /.
         )
 
 register_component()

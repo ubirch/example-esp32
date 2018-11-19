@@ -51,6 +51,7 @@
 #include "key_handling.h"
 #include "settings.h"
 #include "sntp_time.h"
+#include "storage.h"
 #include "ubirch_proto_http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
@@ -263,7 +264,7 @@ bool match(const msgpack_object_kv *map, const char *key, const int type) {
 }
 
 
-void create_message(void) {
+void create_message(uint32_t *values) {
     // create buffer, writer, ubirch protocol context and packer
     msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
     ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
@@ -281,12 +282,13 @@ void create_message(void) {
     // PAYLOAD SECTION
     // add or modify the data here
     //
-    // create array[ timestamp, value ])
-    msgpack_pack_array(pk, 2);
+    // create array[ timestamp, value1, value2 ])
+    msgpack_pack_array(pk, 3);
     uint64_t ts = get_time_us();
     msgpack_pack_uint64(pk, ts);
-    uint32_t fake_temp = (esp_random() & 0x0F);
-    msgpack_pack_int32(pk, (int32_t) (fake_temp));
+//    uint32_t fake_temp = (esp_random() & 0x0F);
+    msgpack_pack_uint32(pk, values[0]);
+    msgpack_pack_uint32(pk, values[1]);
     //
     // END OF PAYLOAD
     //

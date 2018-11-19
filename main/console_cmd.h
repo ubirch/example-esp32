@@ -1,9 +1,9 @@
 /*!
- * @file    util.h
- * @brief   Utility functions
+ * @file    console_cmd.h
+ * @brief   Custom Console commands header file.
  *
  * @author Waldemar Gruenwald
- * @date   2018-10-10
+ * @date   2018-11-14
  *
  * @copyright &copy; 2018 ubirch GmbH (https://ubirch.com)
  *
@@ -22,26 +22,23 @@
  * ```
  */
 
+#ifndef EXAMPLE_ESP32_CONSOLE_CMD_H
+#define EXAMPLE_ESP32_CONSOLE_CMD_H
 
-#ifndef UTIL_H
-#define UTIL_H
+// exit code from console
+#define EXIT_CONSOLE 0xFF
 
-/*!
- * Print out a data message in hex format to the console.
- *
- * @param data buffer for printing
- * @param size of the data buffer
- */
-void print_message(const char *data, size_t size);
+// Register system functions
+void register_system();
 
-/*!
- * Set the Hardware-Device-ID, generated from the MAC address of the device.
- */
-void set_hw_ID(void);
+// Register WiFi functions
+void register_wifi();
 
-/*!
- * Get the hardware device ID and print it out
- */
-void get_hw_ID(void);
+// Register the regular program
+void register_exit();
 
-#endif /* UTIL_H */
+// Register the status
+void register_status();
+
+
+#endif //EXAMPLE_ESP32_CONSOLE_CMD_H

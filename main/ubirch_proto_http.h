@@ -35,6 +35,8 @@
 #ifndef _HTTP_H_
 #define _HTTP_H_
 
+#include "msgpack.h"
+
 #define MSGPACK_MSG_REPLY 85
 #define MSGPACK_MSG_UBIRCH 50
 
@@ -77,7 +79,7 @@ bool match(const msgpack_object_kv *map, const char *key, const int type);
 /*!
  * create a message with msgpack and ubirch protocol and send it
  */
-void create_message(void);
+void create_message(uint32_t *values);
 
 #endif /*_HTTP_H_*/
 

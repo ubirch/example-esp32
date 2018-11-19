@@ -24,7 +24,6 @@
 
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <esp_err.h>
 #include <nvs.h>
 #include <time.h>
@@ -54,8 +53,8 @@ const unsigned char server_pub_key[crypto_sign_PUBLICKEYBYTES] = {
 };
 
 
-/*
- * create a new signature Key pair
+/*!
+ * Create a new signature Key pair
  */
 void create_keys(void) {
     ESP_LOGI(TAG, "create keys");
@@ -67,44 +66,8 @@ void create_keys(void) {
     print_message((const char *) (ed25519_public_key), crypto_sign_PUBLICKEYBYTES);
 }
 
-/*
- * check for possible memory handling errors
- *
- * return error: true, if memory error, false otherwise
- */
-bool memory_error_check(esp_err_t err) {
-    bool error = true;
-    switch (err) {
-        case ESP_OK:
-            error = false;
-            break;
-        case ESP_ERR_NVS_INVALID_HANDLE:
-            ESP_LOGW(TAG, "memory invalid handle");
-            break;
-        case ESP_ERR_NVS_READ_ONLY:
-            ESP_LOGW(TAG, "memory read only");
-            break;
-        case ESP_ERR_NVS_INVALID_NAME:
-            ESP_LOGW(TAG, "memory invalid name");
-            break;
-        case ESP_ERR_NVS_NOT_ENOUGH_SPACE:
-            ESP_LOGW(TAG, "memory not enoug space");
-            break;
-        case ESP_ERR_NVS_REMOVE_FAILED:
-            ESP_LOGW(TAG, "memory remove failed");
-            break;
-        case ESP_ERR_NVS_VALUE_TOO_LONG:
-            ESP_LOGW(TAG, "memory value too long");
-            break;
-        default:
-            ESP_LOGW(TAG, "no handle for %d", err);
-            break;
-    }
-    return error;
-}
 
-
-/*
+/*!
  * Read the Key values from memory
  *
  * return error, true, if something went wrong, false if keys are available
@@ -133,10 +96,10 @@ bool load_keys(void) {
     return false;
 }
 
-/*
+/*!
  * Write the key values to the memory
  *
- * return error: true, if something went wrong, false if keys were successfully stored
+ * @return error: true, if something went wrong, false if keys were successfully stored
  */
 bool store_keys(void) {
     ESP_LOGI(TAG, "write keys");
@@ -168,49 +131,19 @@ bool store_keys(void) {
     return false;
 }
 
-/*
- * Load the last signature
- *
- * return error: true, if something went wrong, false if keys were successfully stored
- */
-bool load_signature(unsigned char *signature) {
-    ESP_LOGI(TAG, "load signature");
-    nvs_handle signatureHandle;
-    // open the memory
-    esp_err_t err = nvs_open("sign_storage", NVS_READONLY, &signatureHandle);
-    if (memory_error_check(err))
-        return true;
-    // read the last signature
-    size_t size_sig = UBIRCH_PROTOCOL_SIGN_SIZE;
-    err = nvs_get_blob(signatureHandle, "signature", signature, &size_sig);
-    if (memory_error_check(err))
-        return true;
-
-    // close the memory
-    nvs_close(signatureHandle);
-    return false;
+bool get_public_key(char *key_buffer) {
+    bool ret = false;
+    for (int i = 0; i < UBIRCH_PROTOCOL_PUBKEY_SIZE; ++i) {
+        if (ed25519_public_key[0] == 0 && !ret) {
+            ret = false;
+        } else {
+            ret = true;
+        }
+        snprintf((key_buffer + (i * 2)), 3, "%02X", ed25519_public_key[i]);
+    }
+    key_buffer[64] = '\0';
+    return ret;
 }
-
-/*
- * Load the last signature
- */
-bool store_signature(const unsigned char *signature, size_t size_sig) {
-    ESP_LOGI(TAG, "store signature");
-    nvs_handle signatureHandle;
-    // open the memory
-    esp_err_t err = nvs_open("sign_storage", NVS_READWRITE, &signatureHandle);
-    if (memory_error_check(err))
-        return true;
-    // read the last signature
-    err = nvs_set_blob(signatureHandle, "signature", signature, size_sig);
-    if (memory_error_check(err))
-        return true;
-
-    // close the memory
-    nvs_close(signatureHandle);
-    return false;
-}
-
 
 void register_keys(void) {
     ESP_LOGI(TAG, "register keys");

@@ -27,47 +27,98 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
+#include <esp_log.h>
 
-#include "msgpack.h"
-#include "ubirch_protocol.h"
-#include "ubirch_ed25519.h"
 
 
 #include "util.h"
-#include "ubirch_proto_http.h"
 #include "wifi.h"
 #include "sntp_time.h"
-#include "key_handling.h"
 
-char *TAG = "example-esp32";
+
+#include "key_handling.h"
+#include "ubirch_proto_http.h"
+#include "ubirch_console.h"
+
+//#include "temp_sensor.h"
+#include "temp_temp.h"
+
 
 // message response
 extern int response;
 
+extern EventGroupHandle_t wifi_event_group;
+//extern const int CONNECTED_BIT = BIT0;
+
 #define BLUE_LED GPIO_NUM_2
 
+char *TAG = "example-esp32";
 
-void app_main(void) {
-    printf("\r\n hello this is Ubirch protocol on ESP32 wifi example \r\n\n");
-    nvs_flash_init();
-    get_set_UUID();
 
-    my_wifi_init();
+void app_main() {
+    initialize_nvs();
+
+#if CONFIG_STORE_HISTORY
+    initialize_filesystem();
+#endif
+
+    set_hw_ID();
+    check_key_status();
+
+//    initSensor();
+
+    run_console();
+
+    ESP_LOGI(TAG, "connecting to wifi");
+    char ssid[64], pwd[64];
+    if (!load_wifi_login(ssid, pwd)) {
+        if (wifi_join(ssid, pwd, 5000)) {
+            ESP_LOGI(TAG, "established");
+        }
+    }
+
+    /* Resume program */
+    printf("\r\n xxx \r\n\n");
+//    nvs_flash_init();
+
+//    my_wifi_init();
 
     obtain_time();
-    check_key_status();
+//    check_key_status();
 
     register_keys();
     // set the blue LED pin on the ESP32 DEVKIT V1 board
     gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
 
+    uint32_t values[2];
+
     while (true) {
-        create_message();
+        if (dht11_read_val(values)) {
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            if (dht11_read_val(values)) {
+                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                dht11_read_val(values);
+            }
+        }
+        create_message(values);
         // let the LED blink
         if (response < 1000) {
             gpio_set_level(BLUE_LED, 0);
         } else gpio_set_level(BLUE_LED, 1);
 
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+//        char* line = linenoise(prompt);
+//
+//        if (line == NULL) { /* Ignore empty lines */
+//            continue;
+//        }
+//        else {
+//            printf("do not touch \r\n");
+//        }
+
     }
+
 }
+
+

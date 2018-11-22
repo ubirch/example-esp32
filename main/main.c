@@ -42,6 +42,7 @@
 
 //#include "temp_sensor.h"
 #include "temp_temp.h"
+#include "esp32-hal-adc.h"
 
 
 // message response
@@ -67,46 +68,57 @@ void app_main() {
 
 //    initSensor();
 
-    run_console();
+//    run_console();
 
     ESP_LOGI(TAG, "connecting to wifi");
-    char ssid[64], pwd[64];
-    if (!load_wifi_login(ssid, pwd)) {
-        if (wifi_join(ssid, pwd, 5000)) {
-            ESP_LOGI(TAG, "established");
-        }
-    }
+    //  char ssid[64], pwd[64];
+//    char *ssid = {"Welt"};
+//    char *pwd = {"SpielSpass"};
+////    if (!load_wifi_login(ssid, pwd)) {
+//
+//        if (wifi_join(ssid, pwd, 5000)) {
+//            ESP_LOGI(TAG, "established");
+//        }
+////    }
+//
+//    /* Resume program */
+//    printf("\r\n xxx \r\n\n");
+////    nvs_flash_init();
+//
+////    my_wifi_init();
+//
+//    obtain_time();
+////    check_key_status();
+//
+//    register_keys();
+//    // set the blue LED pin on the ESP32 DEVKIT V1 board
+//    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
+//
+//    uint32_t values[2];
 
-    /* Resume program */
-    printf("\r\n xxx \r\n\n");
-//    nvs_flash_init();
-
-//    my_wifi_init();
-
-    obtain_time();
-//    check_key_status();
-
-    register_keys();
-    // set the blue LED pin on the ESP32 DEVKIT V1 board
-    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
-
-    uint32_t values[2];
+    int hall_value = 0;
 
     while (true) {
-        if (dht11_read_val(values)) {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            if (dht11_read_val(values)) {
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
-                dht11_read_val(values);
-            }
-        }
-        create_message(values);
-        // let the LED blink
-        if (response < 1000) {
-            gpio_set_level(BLUE_LED, 0);
-        } else gpio_set_level(BLUE_LED, 1);
+//        if (dht11_read_val(values)) {
+//            vTaskDelay(1000 / portTICK_PERIOD_MS);
+//            if (dht11_read_val(values)) {
+//                vTaskDelay(1000 / portTICK_PERIOD_MS);
+//                dht11_read_val(values);
+//            }
+//        }
+//        create_message(values);
+//        // let the LED blink
+//        if (response < 1000) {
+//            gpio_set_level(BLUE_LED, 0);
+//        } else gpio_set_level(BLUE_LED, 1);
+//        printf("hahahall = %d",hall_value);
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+        hall_value = hallRead();
+        ESP_LOGI(TAG, "hahahall = %d", hall_value);
+        DHT_read();
+
 
 //        char* line = linenoise(prompt);
 //

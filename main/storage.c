@@ -59,6 +59,8 @@ bool store_wifi_login(const char *ssid, size_t size_ssid, const char *pwd, size_
     memory_error_check(err);
     nvs_close(wifiHandle);
 
+    ESP_LOGI(TAG, "STORE ssid = %s, %d pwd= %s, %d", ssid, size_ssid, pwd, size_pwd);
+
     err = nvs_open("wifi_data", NVS_READWRITE, &wifiHandle);
 
     // store the wifi ssid length
@@ -113,6 +115,9 @@ bool load_wifi_login(char *ssid, char *pwd) {
     memory_error_check(err);
     // close the memory
     nvs_close(wifiHandle);
+
+    ESP_LOGI(TAG, "LOAD ssid = %s, %d pwd= %s, %d", ssid, size_ssid, pwd, size_pwd);
+
     if (memory_error_check(err))
         return true;
     else {

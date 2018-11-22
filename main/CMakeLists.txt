@@ -37,6 +37,11 @@ set(UBIRCH_PROTOCOL_SRCS
         ${PROJECT_ROOT}/ubirch-protocol/ubirch/ubirch_protocol_kex.c
         ${PROJECT_ROOT}/ubirch-protocol/ubirch/digest/sha512.c)
 
+#ARDUINO hal
+
+set(UBIRCH_HAL_PATH ${PROJECT_ROOT}/esp32)
+file(GLOB_RECURSE HAL_SRCS "${UBIRCH_HAL_PATH}/*.c")
+
 
 set(COMPONENT_SRCS
         main.c
@@ -49,6 +54,7 @@ set(COMPONENT_SRCS
         ${MSGPACK_SRCS}
         ${UBIRCH_PROTOCOL_SRCS}
         ${NACL_SRCS}
+        ${HAL_SRCS}
         cmd_system.c
         ubirch_console.c
         console_cmd.c
@@ -71,6 +77,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
         ${PROJECT_ROOT}/ubirch-protocol/ubirch
         ${PROJECT_ROOT}/ubirch-protocol/ubirch/digest
         ${CMAKE_CURRENT_LIST_DIR}
+        ${PROJECT_ROOT}/esp32
         /.
         )
 

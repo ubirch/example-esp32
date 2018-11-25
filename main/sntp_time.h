@@ -42,4 +42,6 @@ void obtain_time(void);
  */
 uint64_t get_time_us();
 
+void time_status(void);
+
 #endif /* SNTP_TIME_H */

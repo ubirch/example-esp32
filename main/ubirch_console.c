@@ -9,6 +9,8 @@
 #include <esp_console.h>
 #include <esp_log.h>
 #include <linenoise/linenoise.h>
+#include <sys/fcntl.h>
+#include <esp32-hal.h>
 
 #include "ubirch_console.h"
 #include "console_cmd.h"
@@ -38,14 +40,6 @@ void initialize_filesystem()
 }
 #endif // CONFIG_STORE_HISTORY
 
-void initialize_nvs() {
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(err);
-}
 
 void initialize_console() {
     /* Disable buffering on stdin and stdout */
@@ -165,7 +159,7 @@ void run_console(void) {
     }
     /* Flag to stay in the console */
     bool console_status = true;
-    /* Main loop */
+
     while (console_status) {
         /* Get a line using linenoise.
          * The line is returned when ENTER is pressed.
@@ -180,7 +174,6 @@ void run_console(void) {
         /* Save command history to filesystem */
         linenoiseHistorySave(HISTORY_PATH);
 #endif
-
         /* Try to run the command */
         int ret;
         esp_err_t err = esp_console_run(line, &ret);

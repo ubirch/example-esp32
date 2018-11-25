@@ -7,9 +7,11 @@
 
 #include <stdbool.h>
 
-bool store_wifi_login(const char *ssid, size_t size_ssid, const char *pwd, size_t size_pwd);
+void initialize_nvs(void);
 
-bool load_wifi_login(char *ssid, char *pwd);
+bool store_wifi_login(struct Wifi_login wifi);
+
+bool load_wifi_login(struct Wifi_login *wifi);
 /*!
  * Load the last signature
  *

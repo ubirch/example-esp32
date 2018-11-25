@@ -85,12 +85,12 @@ static void initialise_wifi(void) {
     initialized = true;
 }
 
-bool wifi_join(const char *ssid, const char *pass, int timeout_ms) {
+bool wifi_join(struct Wifi_login wifi, int timeout_ms) {
     initialise_wifi();
     wifi_config_t wifi_config = {0};
-    strncpy((char *) wifi_config.sta.ssid, ssid, strlen(ssid));
-    if (pass) {
-        strncpy((char *) wifi_config.sta.password, pass, strlen(pass));
+    strncpy((char *) wifi_config.sta.ssid, wifi.ssid, wifi.ssid_length);
+    if (wifi.pwd) {
+        strncpy((char *) wifi_config.sta.password, wifi.pwd, wifi.pwd_length);
     }
 
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );

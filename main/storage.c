@@ -5,10 +5,21 @@
 #include <esp_log.h>
 #include <nvs.h>
 #include <ubirch_protocol.h>
+#include <nvs_flash.h>
 #include "key_handling.h"
+#include "wifi.h"
 #include "storage.h"
 
 static const char *TAG = "storage";
+
+void initialize_nvs() {
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
+}
 
 /*
  * check for possible memory handling errors
@@ -47,7 +58,7 @@ bool memory_error_check(esp_err_t err) {
 }
 
 
-bool store_wifi_login(const char *ssid, size_t size_ssid, const char *pwd, size_t size_pwd) {
+bool store_wifi_login(struct Wifi_login wifi) {
     nvs_handle wifiHandle;
     // open the memory
     esp_err_t err = nvs_open("wifi_data", NVS_READWRITE, &wifiHandle);
@@ -59,25 +70,25 @@ bool store_wifi_login(const char *ssid, size_t size_ssid, const char *pwd, size_
     memory_error_check(err);
     nvs_close(wifiHandle);
 
-    ESP_LOGI(TAG, "STORE ssid = %s, %d pwd= %s, %d", ssid, size_ssid, pwd, size_pwd);
+    ESP_LOGI(TAG, "STORE ssid = %s, %d pwd= %s, %d", wifi.ssid, wifi.ssid_length, wifi.pwd, wifi.pwd_length);
 
     err = nvs_open("wifi_data", NVS_READWRITE, &wifiHandle);
 
     // store the wifi ssid length
-    err = nvs_set_u32(wifiHandle, "wifi_ssid_l", size_ssid);
+    err = nvs_set_u32(wifiHandle, "wifi_ssid_l", wifi.ssid_length);
     memory_error_check(err);
     // store the wifi ssid
-    err = nvs_set_blob(wifiHandle, "wifi_ssid", ssid, size_ssid);
+    err = nvs_set_blob(wifiHandle, "wifi_ssid", wifi.ssid, wifi.ssid_length);
     memory_error_check(err);
     // store the wifi pwd length
-    err = nvs_set_u32(wifiHandle, "wifi_pwd_l", size_pwd);
+    err = nvs_set_u32(wifiHandle, "wifi_pwd_l", wifi.pwd_length);
     memory_error_check(err);
     // store the wifi pwd
-    err = nvs_set_blob(wifiHandle, "wifi_pwd", pwd, size_pwd);
+    err = nvs_set_blob(wifiHandle, "wifi_pwd", wifi.pwd, wifi.pwd_length);
     memory_error_check(err);
     // close the memory
     nvs_close(wifiHandle);
-    ESP_LOGI(TAG, "stored login data");
+    ESP_LOGD(TAG, "stored login data");
     if (memory_error_check(err))
         return true;
     else {
@@ -92,31 +103,33 @@ bool store_wifi_login(const char *ssid, size_t size_ssid, const char *pwd, size_
  * @return true, if error occured,
  * @return false, if the login data was loaded successfully
  */
-bool load_wifi_login(char *ssid, char *pwd) {
-    ESP_LOGI(TAG, "load login data");
+bool load_wifi_login(struct Wifi_login *wifi) {
+    ESP_LOGD(TAG, "load login data");
     nvs_handle wifiHandle;
     // open the memory
     esp_err_t err = nvs_open("wifi_data", NVS_READONLY, &wifiHandle);
     memory_error_check(err);
 
-    size_t size_ssid = 0;
+//    size_t size_ssid = 0;
     // load the wifi ssid length
-    err = nvs_get_u32(wifiHandle, "wifi_ssid_l", &size_ssid);
+    err = nvs_get_u32(wifiHandle, "wifi_ssid_l", &wifi->ssid_length);
     memory_error_check(err);
     // load the wifi ssid
-    err = nvs_get_blob(wifiHandle, "wifi_ssid", ssid, &size_ssid);
+    err = nvs_get_blob(wifiHandle, "wifi_ssid", wifi->ssid, &wifi->ssid_length);
     memory_error_check(err);
-    size_t size_pwd = 0;
+    wifi->ssid[wifi->ssid_length] = '\0';
+//    size_t size_pwd = 0;
     // load the wifi pwd length
-    err = nvs_get_u32(wifiHandle, "wifi_pwd_l", &size_pwd);
+    err = nvs_get_u32(wifiHandle, "wifi_pwd_l", &wifi->pwd_length);
     memory_error_check(err);
     // load the wifi pwd
-    err = nvs_get_blob(wifiHandle, "wifi_pwd", pwd, &size_pwd);
+    err = nvs_get_blob(wifiHandle, "wifi_pwd", wifi->pwd, &wifi->pwd_length);
     memory_error_check(err);
+    wifi->pwd[wifi->pwd_length] = '\0';
     // close the memory
     nvs_close(wifiHandle);
 
-    ESP_LOGI(TAG, "LOAD ssid = %s, %d pwd= %s, %d", ssid, size_ssid, pwd, size_pwd);
+    ESP_LOGD(TAG, "LOAD ssid = %s, %d pwd= %s, %d", wifi->ssid, wifi->ssid_length, wifi->pwd, wifi->pwd_length);
 
     if (memory_error_check(err))
         return true;
@@ -131,7 +144,7 @@ bool load_wifi_login(char *ssid, char *pwd) {
  * return error: true, if something went wrong, false if keys were successfully stored
  */
 bool load_signature(unsigned char *signature) {
-    ESP_LOGI(TAG, "load signature");
+    ESP_LOGD(TAG, "load signature");
     nvs_handle signatureHandle;
     // open the memory
     esp_err_t err = nvs_open("sign_storage", NVS_READONLY, &signatureHandle);
@@ -152,7 +165,7 @@ bool load_signature(unsigned char *signature) {
  * Load the last signature
  */
 bool store_signature(const unsigned char *signature, size_t size_sig) {
-    ESP_LOGI(TAG, "store signature");
+    ESP_LOGD(TAG, "store signature");
     nvs_handle signatureHandle;
     // open the memory
     esp_err_t err = nvs_open("sign_storage", NVS_READWRITE, &signatureHandle);

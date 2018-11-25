@@ -35,6 +35,7 @@
 
 #include "console_cmd.h"
 #include "storage.h"
+#include "sntp_time.h"
 
 /*
  * 'exit' command exits the console and runs the rest of the program
@@ -59,6 +60,7 @@ void register_exit() {
  */
 static int run_status(int argc, char **argv) {
     ESP_LOGI(__func__, "Current Status\r\n");
+    struct Wifi_login wifi;
     char buffer[65] = {};
     // show the Hardware device ID
     get_hw_ID();
@@ -69,13 +71,13 @@ static int run_status(int argc, char **argv) {
         ESP_LOGI("Public Key", "%s", buffer);
     }
     // show the wifi login information, if available
-    char ssid[64], pwd[64];
-    if (!load_wifi_login(ssid, pwd)) {
-        ESP_LOGI("Wifi SSID", "%s", ssid);
-        ESP_LOGD("Wifi PWD", "%s", pwd);
+    if (!load_wifi_login(&wifi)) {
+        ESP_LOGI("Wifi SSID", "%s", wifi.ssid);
+        ESP_LOGD("Wifi PWD", "%s", wifi.pwd);
     } else {
         ESP_LOGI("Wifi not configured yet", "type join to do so");
     }
+    time_status();
 
     return ESP_OK;
 }
@@ -110,11 +112,18 @@ static int connect(int argc, char **argv) {
         arg_print_errors(stderr, join_args.end, argv[0]);
         return 1;
     }
+
+    struct Wifi_login wifi;
+    strncpy(wifi.ssid, join_args.ssid->sval[0], strlen(join_args.ssid->sval[0]));
+    wifi.ssid_length = strlen(join_args.ssid->sval[0]);
+    strncpy(wifi.pwd, join_args.password->sval[0], strlen(join_args.password->sval[0]));
+    wifi.pwd_length = strlen(join_args.password->sval[0]);
+
     ESP_LOGI(__func__, "Connecting to '%s'",
              join_args.ssid->sval[0]);
 
-    bool connected = wifi_join(join_args.ssid->sval[0],
-                               join_args.password->sval[0],
+
+    bool connected = wifi_join(wifi,
                                join_args.timeout->ival[0]);
     if (!connected) {
         ESP_LOGW(__func__, "Connection timed out");
@@ -122,8 +131,8 @@ static int connect(int argc, char **argv) {
     }
     ESP_LOGI(__func__, "Connected");
     // Store the wifi login data
-    store_wifi_login(join_args.ssid->sval[0], strlen(join_args.ssid->sval[0]),
-                     join_args.password->sval[0], strlen(join_args.password->sval[0]));
+
+    store_wifi_login(wifi);
     return 0;
 }
 

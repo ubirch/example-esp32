@@ -9,8 +9,6 @@
 void initialize_filesystem();
 #endif // CONFIG_STORE_HISTORY
 
-void initialize_nvs();
-
 void initialize_console();
 
 void run_console(void);

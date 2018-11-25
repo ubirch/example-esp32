@@ -79,7 +79,7 @@ bool match(const msgpack_object_kv *map, const char *key, const int type);
 /*!
  * create a message with msgpack and ubirch protocol and send it
  */
-void create_message(uint32_t *values);
+void create_message(int32_t *values, uint16_t num);
 
 #endif /*_HTTP_H_*/
 

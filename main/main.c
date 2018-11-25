@@ -28,7 +28,7 @@
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <esp_log.h>
-
+#include <home/ESP/test2/esp-idf/components/vfs/include/esp_vfs_dev.h>
 
 
 #include "util.h"
@@ -43,6 +43,7 @@
 //#include "temp_sensor.h"
 #include "temp_temp.h"
 #include "esp32-hal-adc.h"
+#include "storage.h"
 
 
 // message response
@@ -52,12 +53,19 @@ extern EventGroupHandle_t wifi_event_group;
 //extern const int CONNECTED_BIT = BIT0;
 
 #define BLUE_LED GPIO_NUM_2
+#define BOOT_BUTTON GPIO_NUM_0
+#define ESP_INTR_FLAG_DEFAULT 0
+
 
 char *TAG = "example-esp32";
 
-
 void app_main() {
+
+    uint32_t io_num;
+
+
     initialize_nvs();
+
 
 #if CONFIG_STORE_HISTORY
     initialize_filesystem();
@@ -66,71 +74,52 @@ void app_main() {
     set_hw_ID();
     check_key_status();
 
-//    initSensor();
-
-//    run_console();
 
     ESP_LOGI(TAG, "connecting to wifi");
-    //  char ssid[64], pwd[64];
+    struct Wifi_login wifi;
+
 //    char *ssid = {"Welt"};
 //    char *pwd = {"SpielSpass"};
-////    if (!load_wifi_login(ssid, pwd)) {
+    if (!load_wifi_login(&wifi)) {
+
+        if (!wifi_join(wifi, 5000)) {
+            ESP_LOGI(TAG, "established");
+            obtain_time();
+            register_keys();
+        }
+    }
+
+
+    // set the blue LED pin on the ESP32 DEVKIT V1 board
+    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(BOOT_BUTTON, GPIO_MODE_INPUT);
 //
-//        if (wifi_join(ssid, pwd, 5000)) {
-//            ESP_LOGI(TAG, "established");
-//        }
-////    }
-//
-//    /* Resume program */
-//    printf("\r\n xxx \r\n\n");
-////    nvs_flash_init();
-//
-////    my_wifi_init();
-//
-//    obtain_time();
-////    check_key_status();
-//
-//    register_keys();
-//    // set the blue LED pin on the ESP32 DEVKIT V1 board
-//    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
-//
-//    uint32_t values[2];
+    int32_t values[2];
 
     int hall_value = 0;
 
     while (true) {
-//        if (dht11_read_val(values)) {
-//            vTaskDelay(1000 / portTICK_PERIOD_MS);
-//            if (dht11_read_val(values)) {
-//                vTaskDelay(1000 / portTICK_PERIOD_MS);
-//                dht11_read_val(values);
-//            }
-//        }
-//        create_message(values);
-//        // let the LED blink
-//        if (response < 1000) {
-//            gpio_set_level(BLUE_LED, 0);
-//        } else gpio_set_level(BLUE_LED, 1);
-//        printf("hahahall = %d",hall_value);
+        // let the LED blink
+        if (response < 1000) {
+            gpio_set_level(BLUE_LED, 0);
+        } else gpio_set_level(BLUE_LED, 1);
 
+        values[0] = hallRead();
+        float f_temperature = temperatureRead();
+        values[1] = (int32_t) (f_temperature);
+
+        ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
+
+        create_message(values, 2);
+
+        if (gpio_get_level(BOOT_BUTTON) == 0) {
+            ESP_LOGI(TAG, "Starting Console");
+            run_console();
+        }
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-        hall_value = hallRead();
-        ESP_LOGI(TAG, "hahahall = %d", hall_value);
-        DHT_read();
-
-
-//        char* line = linenoise(prompt);
-//
-//        if (line == NULL) { /* Ignore empty lines */
-//            continue;
-//        }
-//        else {
-//            printf("do not touch \r\n");
-//        }
-
     }
 
 }
+
 
 

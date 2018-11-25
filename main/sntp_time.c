@@ -82,3 +82,16 @@ uint64_t get_time_us() {
     ESP_LOGD(TAG, "= %llu", time_us);
     return time_us;
 }
+
+void time_status(void) {
+    char *TAG = "Current Time";
+    time_t now = 0;
+    struct tm timeinfo = {0};
+
+    time(&now);
+    localtime_r(&now, &timeinfo);
+
+    ESP_LOGI(TAG, "%02d.%02d.%04d %02d:%02d:%02d GMT\r\n", timeinfo.tm_mday, timeinfo.tm_mon,
+             (1900 + timeinfo.tm_year),
+             timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+}

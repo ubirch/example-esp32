@@ -39,8 +39,8 @@ set(UBIRCH_PROTOCOL_SRCS
 
 #ARDUINO hal
 
-set(UBIRCH_HAL_PATH ${PROJECT_ROOT}/esp32)
-file(GLOB_RECURSE HAL_SRCS "${UBIRCH_HAL_PATH}/*.c")
+#set(UBIRCH_HAL_PATH ${PROJECT_ROOT}/esp32)
+#file(GLOB_RECURSE HAL_SRCS "${UBIRCH_HAL_PATH}/*.c")
 
 
 set(COMPONENT_SRCS
@@ -77,7 +77,6 @@ set(COMPONENT_ADD_INCLUDEDIRS
         ${PROJECT_ROOT}/ubirch-protocol/ubirch
         ${PROJECT_ROOT}/ubirch-protocol/ubirch/digest
         ${CMAKE_CURRENT_LIST_DIR}
-        ${PROJECT_ROOT}/esp32
         /.
         )
 

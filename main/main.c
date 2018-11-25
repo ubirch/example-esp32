@@ -42,7 +42,8 @@
 
 //#include "temp_sensor.h"
 #include "temp_temp.h"
-#include "esp32-hal-adc.h"
+//#include "esp32-hal-adc.h"
+#include "../../components/arduino-esp32/cores/esp32/Arduino.h"
 #include "storage.h"
 
 
@@ -58,6 +59,9 @@ extern EventGroupHandle_t wifi_event_group;
 
 
 char *TAG = "example-esp32";
+
+extern uint8_t temprature_sens_read();
+
 
 void app_main() {
 
@@ -96,8 +100,6 @@ void app_main() {
 //
     int32_t values[2];
 
-    int hall_value = 0;
-
     while (true) {
         // let the LED blink
         if (response < 1000) {
@@ -106,6 +108,8 @@ void app_main() {
 
         values[0] = hallRead();
         float f_temperature = temperatureRead();
+        uint8_t temp = temprature_sens_read();
+        printf(">>>>>>>>>>>>>>temp = %d\r\n", temp);
         values[1] = (int32_t) (f_temperature);
 
         ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
@@ -118,7 +122,6 @@ void app_main() {
         }
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
-
 }
 
 

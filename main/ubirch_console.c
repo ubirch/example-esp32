@@ -10,7 +10,7 @@
 #include <esp_log.h>
 #include <linenoise/linenoise.h>
 #include <sys/fcntl.h>
-#include <esp32-hal.h>
+//#include "esp32-hal.h"
 
 #include "ubirch_console.h"
 #include "console_cmd.h"

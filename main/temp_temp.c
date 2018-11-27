@@ -12,13 +12,14 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_timer.h>
-#include <esp32-hal-gpio.h>
+#include <../../components/arduino/cores/esp32/esp32-hal-gpio.h>
+//#include <esp32-hal-gpio.h>
 
 
 #define MAX_TIME 85
 #define DHT11PIN GPIO_NUM_4
-#define HIGH 1
-#define LOW 0
+//#define HIGH 1
+//#define LOW 0
 int dht11_val[5] = {0, 0, 0, 0, 0};
 
 

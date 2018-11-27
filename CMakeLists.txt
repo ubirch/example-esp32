@@ -14,8 +14,10 @@ if (NOT DEFINED ENV{IDF_PATH})
 else ()
     set(IDF_PATH $ENV{IDF_PATH})
 endif ()
-set(ENV{IDF_PATH} /home/ESP/arduino_lib_test/esp-idf/)
-message(STATUS "IDF_PATH: ${IDF_PATH}")
+
+#set(ENV{IDF_PATH} /home/ESP/arduino_lib_test/esp-idf/)
+#set(IDF_PATH /home/ESP/arduino_lib_test/esp-idf/)
+message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
 
 # add some necessary defnitions
 add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)

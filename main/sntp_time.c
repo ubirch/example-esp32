@@ -27,7 +27,7 @@
 #include <apps/sntp/sntp.h>
 #include "sntp_time.h"
 
-#define TIME_RES_SEC 1000000
+#define TIME_RES_SEC 1000
 
 /*
  * Initialize the SNTP server

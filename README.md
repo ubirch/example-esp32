@@ -33,6 +33,7 @@ Use this path structure for the packages:
                 /example-esp32/ubirch-protocol
                 /example-esp32/ubirch-mbed-msgpack
                 /example-esp32/ubirch-mbed-nacl-cm0
+                /example-eps32/components/arduino-esp32
   …
 ```
 
@@ -58,6 +59,12 @@ an application on the ESP32, which uses the ubirch-protocol.
 $ git clone https://github.com/ubirch/example-esp32.git
 ```
 
+Afterwards get the submodules with the commands
+
+```bash
+cd example-esp && \
+git submodule update --init --recursive
+```
 > Clone the following libraries within `example-esp32`
 
 ### ubirch-protocol

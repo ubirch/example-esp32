@@ -37,16 +37,15 @@ struct Wifi_login {
  */
 void my_wifi_init(void);
 
-/*!
- * Load the wifi login data from flash.
- *
- * @param ssid
- * @param pwd
- * @return true, if error occured,
- * @return false, if the login data was loaded successfully
- */
-//bool load_wifi_login(struct Wifi_login wifi);
 
+/*!
+ * Join a specific Wifi network
+ *
+ * @param wifi  structure with Wifi SSID and PWD information
+ * @param timeout_ms time until timeout
+ * @return true, if connection sucessful
+ * @return false, if error occured
+ */
 bool wifi_join(struct Wifi_login wifi, int timeout_ms);
 
 #endif /* WIFI_H */

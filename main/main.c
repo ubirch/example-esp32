@@ -28,8 +28,12 @@
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <esp_log.h>
-#include <home/ESP/test2/esp-idf/components/vfs/include/esp_vfs_dev.h>
+#include <../../components/vfs/include/esp_vfs_dev.h>
+#include <home/ESP/arduino_lib_test/esp-idf/components/driver/include/driver/adc.h>
 
+//#include "../../components/arduino-esp32/cores/esp32/Arduino.h"
+#include "esp32-hal.h"
+#include "esp32-hal-adc.h"
 
 #include "util.h"
 #include "wifi.h"
@@ -43,7 +47,6 @@
 //#include "temp_sensor.h"
 #include "temp_temp.h"
 //#include "esp32-hal-adc.h"
-#include "../../components/arduino-esp32/cores/esp32/Arduino.h"
 #include "storage.h"
 
 
@@ -66,6 +69,11 @@ extern uint8_t temprature_sens_read();
 void app_main() {
 
     uint32_t io_num;
+    bool wifi_status = false;
+
+    // set the blue LED pin on the ESP32 DEVKIT V1 board
+    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(BOOT_BUTTON, GPIO_MODE_INPUT);
 
 
     initialize_nvs();
@@ -82,21 +90,36 @@ void app_main() {
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
-//    char *ssid = {"Welt"};
-//    char *pwd = {"SpielSpass"};
     if (!load_wifi_login(&wifi)) {
 
-        if (!wifi_join(wifi, 5000)) {
+        if (wifi_join(wifi, 5000)) {
             ESP_LOGI(TAG, "established");
             obtain_time();
             register_keys();
+            wifi_status = true;
+        }
+        else { // no connection
+            ESP_LOGW(TAG, "no valid Wifi");
+            wifi_status = false;
         }
     }
+    else {  // no WiFi connection
+        ESP_LOGW(TAG, "no Wifi login data");
+        wifi_status = false;
+    }
+    uint8_t led_on = 0;
 
+    while(wifi_status == false){
+        if (gpio_get_level(BOOT_BUTTON) == 0) {
+            ESP_LOGI(TAG, "Starting Console");
+            run_console();
+        }
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+        led_on ^= 0x01;
+        gpio_set_level(BLUE_LED, led_on);
+        ESP_LOGI(TAG, "waiting for ...");
+    }
 
-    // set the blue LED pin on the ESP32 DEVKIT V1 board
-    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
-    gpio_set_direction(BOOT_BUTTON, GPIO_MODE_INPUT);
 //
     int32_t values[2];
 
@@ -108,8 +131,6 @@ void app_main() {
 
         values[0] = hallRead();
         float f_temperature = temperatureRead();
-        uint8_t temp = temprature_sens_read();
-        printf(">>>>>>>>>>>>>>temp = %d\r\n", temp);
         values[1] = (int32_t) (f_temperature);
 
         ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);

@@ -49,6 +49,9 @@
 //#include "esp32-hal-adc.h"
 #include "storage.h"
 
+static SemaphoreHandle_t sem_wifi_initialized = NULL;
+
+
 
 // message response
 extern int response;
@@ -65,65 +68,13 @@ char *TAG = "example-esp32";
 
 extern uint8_t temprature_sens_read();
 
+static TaskHandle_t main_task_handle = NULL;
+static TaskHandle_t net_config_handle = NULL;
 
-void app_main() {
+void main_task(void *pvParameters){
 
-    uint32_t io_num;
-    bool wifi_status = false;
-
-    // set the blue LED pin on the ESP32 DEVKIT V1 board
-    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
-    gpio_set_direction(BOOT_BUTTON, GPIO_MODE_INPUT);
-
-
-    initialize_nvs();
-
-
-#if CONFIG_STORE_HISTORY
-    initialize_filesystem();
-#endif
-
-    set_hw_ID();
-    check_key_status();
-
-
-    ESP_LOGI(TAG, "connecting to wifi");
-    struct Wifi_login wifi;
-
-    if (!load_wifi_login(&wifi)) {
-
-        if (wifi_join(wifi, 5000)) {
-            ESP_LOGI(TAG, "established");
-            obtain_time();
-            register_keys();
-            wifi_status = true;
-        }
-        else { // no connection
-            ESP_LOGW(TAG, "no valid Wifi");
-            wifi_status = false;
-        }
-    }
-    else {  // no WiFi connection
-        ESP_LOGW(TAG, "no Wifi login data");
-        wifi_status = false;
-    }
-    uint8_t led_on = 0;
-
-    while(wifi_status == false){
-        if (gpio_get_level(BOOT_BUTTON) == 0) {
-            ESP_LOGI(TAG, "Starting Console");
-            run_console();
-        }
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        led_on ^= 0x01;
-        gpio_set_level(BLUE_LED, led_on);
-        ESP_LOGI(TAG, "waiting for ...");
-    }
-
-//
-    int32_t values[2];
-
-    while (true) {
+    for(;;) {
+        int32_t values[2];
         // let the LED blink
         if (response < 1000) {
             gpio_set_level(BLUE_LED, 0);
@@ -135,13 +86,94 @@ void app_main() {
 
         ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
 
-        create_message(values, 2);
+  //      create_message(values, 2);
 
-        if (gpio_get_level(BOOT_BUTTON) == 0) {
-            ESP_LOGI(TAG, "Starting Console");
-            run_console();
+        vTaskDelay(30000 / portTICK_PERIOD_MS);
+    }
+}
+
+void network_config_task(void *pvParameters){
+
+    for(;;){}
+//    if( xSemaphoreTake(sem_wifi_initialized, (TickType_t) 10) == pdTRUE){
+//        ESP_LOGI("semaphore check", "wifi enabled");
+//        obtain_time();
+//        register_keys();
+
+//        vTaskDelete(net_config_handle);
+//    }
+//    else {
+//        ESP_LOGW("network configuration", "not performed yet");
+//    }
+
+}
+
+/**
+ * Initialize the basic system components
+ * @return ESP_OK or error code.
+ */
+esp_err_t init_system() {
+
+    esp_err_t err = ESP_OK;
+
+    // set the blue LED pin on the ESP32 DEVKIT V1 board
+    gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(BOOT_BUTTON, GPIO_MODE_INPUT);
+
+    init_nvs();
+
+#if CONFIG_STORE_HISTORY
+    initialize_filesystem();
+#endif
+
+    init_console();
+
+    set_hw_ID();
+    check_key_status();
+
+    return err;
+}
+
+
+
+void app_main() {
+
+    init_system();
+    vSemaphoreCreateBinary(sem_wifi_initialized);
+
+
+    ESP_LOGI(TAG, "connecting to wifi");
+    struct Wifi_login wifi;
+
+    if (!load_wifi_login(&wifi)) {
+
+        if (wifi_join(wifi, 5000)) {
+            ESP_LOGI(TAG, "established");
+            xSemaphoreGive(sem_wifi_initialized);
         }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        else { // no connection
+            ESP_LOGW(TAG, "no valid Wifi");
+        }
+    }
+    else {  // no WiFi connection
+        ESP_LOGW(TAG, "no Wifi login data");
+    }
+
+    xTaskCreate(&main_task, "hello_task", 8192, NULL, 5, &main_task_handle);
+    xTaskCreate(&network_config_task, "network_config", 4096, NULL, 5, &net_config_handle);
+
+    while (true) {
+        char c;
+        c = fgetc(stdin);
+        if(c != 0x03) {  //0x03 = Ctrl + C
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+            continue;
+        }
+        // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
+        ESP_LOGI(TAG, "Starting Console");
+        vTaskSuspend(main_task_handle);
+        run_console();
+        vTaskResume(main_task_handle);
     }
 }
 

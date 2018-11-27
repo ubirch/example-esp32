@@ -42,6 +42,7 @@
  */
 static int exit_console(int argc, char **argv) {
     ESP_LOGI(__func__, "Exiting Console");
+    fflush(stdin);
     return EXIT_CONSOLE;
 }
 

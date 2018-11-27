@@ -9,7 +9,7 @@
 void initialize_filesystem();
 #endif // CONFIG_STORE_HISTORY
 
-void initialize_console();
+void init_console();
 
 void run_console(void);
 

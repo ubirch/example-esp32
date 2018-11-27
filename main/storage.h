@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 
-void initialize_nvs(void);
+void init_nvs(void);
 
 bool store_wifi_login(struct Wifi_login wifi);
 

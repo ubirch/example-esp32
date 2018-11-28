@@ -179,7 +179,7 @@ void check_key_status(void) {
     if (load_keys()) {
         create_keys();
         store_keys();
-        register_keys();
+//        register_keys();
     }
 }
 

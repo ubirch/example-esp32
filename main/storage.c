@@ -62,18 +62,24 @@ bool store_wifi_login(struct Wifi_login wifi) {
     nvs_handle wifiHandle;
     // open the memory
     esp_err_t err = nvs_open("wifi_data", NVS_READWRITE, &wifiHandle);
-    memory_error_check(err);
+    if (memory_error_check(err)) {
+        return true;
+    }
     // erase old data
     err = nvs_erase_all(wifiHandle);
     memory_error_check(err);
     err = nvs_commit(wifiHandle);
     memory_error_check(err);
     nvs_close(wifiHandle);
-
+    if (memory_error_check(err)) {
+        return true;
+    }
     ESP_LOGI(TAG, "STORE ssid = %s, %d pwd= %s, %d", wifi.ssid, wifi.ssid_length, wifi.pwd, wifi.pwd_length);
 
     err = nvs_open("wifi_data", NVS_READWRITE, &wifiHandle);
-
+    if (memory_error_check(err)) {
+        return true;
+    }
     // store the wifi ssid length
     err = nvs_set_u32(wifiHandle, "wifi_ssid_l", wifi.ssid_length);
     memory_error_check(err);
@@ -89,11 +95,10 @@ bool store_wifi_login(struct Wifi_login wifi) {
     // close the memory
     nvs_close(wifiHandle);
     ESP_LOGD(TAG, "stored login data");
-    if (memory_error_check(err))
+    if (memory_error_check(err)) {
         return true;
-    else {
-        return false;
     }
+    return false;
 }
 /*!
  * Load the wifi login data from flash.
@@ -108,9 +113,9 @@ bool load_wifi_login(struct Wifi_login *wifi) {
     nvs_handle wifiHandle;
     // open the memory
     esp_err_t err = nvs_open("wifi_data", NVS_READONLY, &wifiHandle);
-    memory_error_check(err);
-
-//    size_t size_ssid = 0;
+    if(memory_error_check(err)) {
+        return true;
+    }
     // load the wifi ssid length
     err = nvs_get_u32(wifiHandle, "wifi_ssid_l", &wifi->ssid_length);
     memory_error_check(err);
@@ -118,7 +123,6 @@ bool load_wifi_login(struct Wifi_login *wifi) {
     err = nvs_get_blob(wifiHandle, "wifi_ssid", wifi->ssid, &wifi->ssid_length);
     memory_error_check(err);
     wifi->ssid[wifi->ssid_length] = '\0';
-//    size_t size_pwd = 0;
     // load the wifi pwd length
     err = nvs_get_u32(wifiHandle, "wifi_pwd_l", &wifi->pwd_length);
     memory_error_check(err);
@@ -128,14 +132,11 @@ bool load_wifi_login(struct Wifi_login *wifi) {
     wifi->pwd[wifi->pwd_length] = '\0';
     // close the memory
     nvs_close(wifiHandle);
-
     ESP_LOGD(TAG, "LOAD ssid = %s, %d pwd= %s, %d", wifi->ssid, wifi->ssid_length, wifi->pwd, wifi->pwd_length);
-
-    if (memory_error_check(err))
+    if (memory_error_check(err)){
         return true;
-    else {
-        return false;
     }
+    return false;
 }
 
 /*
@@ -148,16 +149,17 @@ bool load_signature(unsigned char *signature) {
     nvs_handle signatureHandle;
     // open the memory
     esp_err_t err = nvs_open("sign_storage", NVS_READONLY, &signatureHandle);
-    if (memory_error_check(err))
+    if (memory_error_check(err)) {
         return true;
+    }
     // read the last signature
     size_t size_sig = UBIRCH_PROTOCOL_SIGN_SIZE;
     err = nvs_get_blob(signatureHandle, "signature", signature, &size_sig);
-    if (memory_error_check(err))
-        return true;
-
     // close the memory
     nvs_close(signatureHandle);
+    if (memory_error_check(err)) {
+        return true;
+    }
     return false;
 }
 
@@ -169,15 +171,16 @@ bool store_signature(const unsigned char *signature, size_t size_sig) {
     nvs_handle signatureHandle;
     // open the memory
     esp_err_t err = nvs_open("sign_storage", NVS_READWRITE, &signatureHandle);
-    if (memory_error_check(err))
+    if (memory_error_check(err)) {
         return true;
+    }
     // read the last signature
     err = nvs_set_blob(signatureHandle, "signature", signature, size_sig);
-    if (memory_error_check(err))
-        return true;
-
     // close the memory
     nvs_close(signatureHandle);
+    if (memory_error_check(err)) {
+        return true;
+    }
     return false;
 }
 

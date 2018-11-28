@@ -29,17 +29,12 @@
 #include <freertos/event_groups.h>
 
 #include "settings.h"
+#include "util.h"
 #include "wifi.h"
 
 static const char *TAG = "WIFI";
 /* FreeRTOS event group to signal when we are connected & ready to make a request */
 EventGroupHandle_t wifi_event_group;
-
-/* The event group allows multiple bits for each event,
-   but we only care about one event - are we connected
-   to the AP with an IP? */
-const int CONNECTED_BIT = BIT0;
-
 
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
@@ -57,7 +52,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             esp_wifi_connect();
-            xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+            xEventGroupClearBits(wifi_event_group, (CONNECTED_BIT | READY_BIT));
             ESP_LOGD(TAG, "wifi disconnected");
             break;
         default:
@@ -68,7 +63,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 }
 
 
-static void initialise_wifi(void) {
+void initialise_wifi(void) {
     esp_log_level_set("wifi", ESP_LOG_WARN);
     static bool initialized = false;
     if (initialized) {
@@ -86,7 +81,6 @@ static void initialise_wifi(void) {
 }
 
 bool wifi_join(struct Wifi_login wifi, int timeout_ms) {
-    initialise_wifi();
     wifi_config_t wifi_config = {0};
     strncpy((char *) wifi_config.sta.ssid, wifi.ssid, wifi.ssid_length);
     if (wifi.pwd) {
@@ -98,7 +92,6 @@ bool wifi_join(struct Wifi_login wifi, int timeout_ms) {
     ESP_ERROR_CHECK(esp_wifi_connect());
 
     int bits = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
-                                   1, 1, timeout_ms / portTICK_PERIOD_MS);
-
+                                   false, true, timeout_ms / portTICK_PERIOD_MS);
     return (bits & CONNECTED_BIT) != 0;
 }

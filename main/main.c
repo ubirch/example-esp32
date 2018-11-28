@@ -49,15 +49,8 @@
 //#include "esp32-hal-adc.h"
 #include "storage.h"
 
-static SemaphoreHandle_t sem_wifi_initialized = NULL;
-
-
-
 // message response
 extern int response;
-
-extern EventGroupHandle_t wifi_event_group;
-//extern const int CONNECTED_BIT = BIT0;
 
 #define BLUE_LED GPIO_NUM_2
 #define BOOT_BUTTON GPIO_NUM_0
@@ -70,42 +63,83 @@ extern uint8_t temprature_sens_read();
 
 static TaskHandle_t main_task_handle = NULL;
 static TaskHandle_t net_config_handle = NULL;
+static TaskHandle_t console_handle = NULL;
+
+extern EventGroupHandle_t wifi_event_group;
+
 
 void main_task(void *pvParameters){
+    // get the current tick count to run the task periodic
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    uint32_t task_period_ms = 3000; //!< period for the task in ms, default value = 30 sec.
+    if (pvParameters != NULL){
+        task_period_ms = *(uint32_t*)(pvParameters);
+    }
+
+    EventBits_t event_bits;
 
     for(;;) {
-        int32_t values[2];
-        // let the LED blink
-        if (response < 1000) {
-            gpio_set_level(BLUE_LED, 0);
-        } else gpio_set_level(BLUE_LED, 1);
+        event_bits = xEventGroupWaitBits(wifi_event_group,
+                                         READY_BIT,
+                                         false,
+                                         false,
+                                         portMAX_DELAY);
+        //
+        if (event_bits & READY_BIT) {
+            int32_t values[2];
+            // let the LED blink
+            if (response < 1000) {
+                gpio_set_level(BLUE_LED, 0);
+            } else gpio_set_level(BLUE_LED, 1);
 
-        values[0] = hallRead();
-        float f_temperature = temperatureRead();
-        values[1] = (int32_t) (f_temperature);
-
-        ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
-
-  //      create_message(values, 2);
-
-        vTaskDelay(30000 / portTICK_PERIOD_MS);
+            values[0] = hallRead();
+            float f_temperature = temperatureRead();
+            values[1] = (int32_t)(f_temperature);
+            ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
+            create_message(values, 2);
+            vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(task_period_ms));
+        }
     }
 }
 
 void network_config_task(void *pvParameters){
+    ESP_LOGI("network config", "started");
+    EventBits_t event_bits;
 
-    for(;;){}
-//    if( xSemaphoreTake(sem_wifi_initialized, (TickType_t) 10) == pdTRUE){
-//        ESP_LOGI("semaphore check", "wifi enabled");
-//        obtain_time();
-//        register_keys();
+    for(;;) {
+        event_bits = xEventGroupWaitBits(wifi_event_group,
+                                         (CONNECTED_BIT | CONFIGURED_BIT | READY_BIT),
+                                         false,
+                                         false,
+                                         portMAX_DELAY);
+        //
+        if (event_bits == CONNECTED_BIT) {
+            ESP_LOGI("event group bit check", "wifi enabled");
+            obtain_time();
+            register_keys();
+            //
+            xEventGroupSetBits(wifi_event_group, READY_BIT);
+        }
+        else {
+            vTaskDelay(portMAX_DELAY);
+        }
+    }
+}
 
-//        vTaskDelete(net_config_handle);
-//    }
-//    else {
-//        ESP_LOGW("network configuration", "not performed yet");
-//    }
-
+void enter_console(void *pvParameter){
+    char c;
+    for (;;) {
+        c = fgetc(stdin);
+        if(c == 0x03) {  //0x03 = Ctrl + C
+            // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
+            ESP_LOGI(TAG, "Starting Console");
+            vTaskSuspend(main_task_handle);
+            vTaskSuspend(net_config_handle);
+            run_console();
+            vTaskResume(net_config_handle);
+            vTaskResume(main_task_handle);
+        }
+    }
 }
 
 /**
@@ -127,6 +161,8 @@ esp_err_t init_system() {
 #endif
 
     init_console();
+    initialise_wifi();
+
 
     set_hw_ID();
     check_key_status();
@@ -139,8 +175,6 @@ esp_err_t init_system() {
 void app_main() {
 
     init_system();
-    vSemaphoreCreateBinary(sem_wifi_initialized);
-
 
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
@@ -149,7 +183,6 @@ void app_main() {
 
         if (wifi_join(wifi, 5000)) {
             ESP_LOGI(TAG, "established");
-            xSemaphoreGive(sem_wifi_initialized);
         }
         else { // no connection
             ESP_LOGW(TAG, "no valid Wifi");
@@ -161,19 +194,9 @@ void app_main() {
 
     xTaskCreate(&main_task, "hello_task", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&network_config_task, "network_config", 4096, NULL, 5, &net_config_handle);
+    xTaskCreate(&enter_console, "enter_console", 4096, NULL, 1, &console_handle );
 
     while (true) {
-        char c;
-        c = fgetc(stdin);
-        if(c != 0x03) {  //0x03 = Ctrl + C
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-            continue;
-        }
-        // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
-        ESP_LOGI(TAG, "Starting Console");
-        vTaskSuspend(main_task_handle);
-        run_console();
-        vTaskResume(main_task_handle);
     }
 }
 

@@ -25,6 +25,7 @@ set(COMPONENTS soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapt
 # set the components local to our project
 set(PROJECT_COMPONENTS
         ubirch-esp32-networking
+        ubirch-esp32-console
         ubirch-mbed-msgpack
         ubirch-mbed-nacl-cm0
         ubirch-protocol

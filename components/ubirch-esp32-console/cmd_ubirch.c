@@ -26,14 +26,12 @@
 #include <esp_log.h>
 #include <esp_console.h>
 #include <argtable3/argtable3.h>
-//#include <esp_err.h>
 #include "util.h"
 
 #include "key_handling.h"
 #include "networking.h"
 
-
-#include "console_cmd.h"
+#include "cnd_ubirch.h"
 #include "storage.h"
 #include "sntp_time.h"
 

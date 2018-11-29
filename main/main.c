@@ -28,8 +28,8 @@
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <esp_log.h>
-#include <../../components/vfs/include/esp_vfs_dev.h>
-#include <home/ESP/arduino_lib_test/esp-idf/components/driver/include/driver/adc.h>
+//#include <../../components/vfs/include/esp_vfs_dev.h>
+//#include <home/ESP/arduino_lib_test/esp-idf/components/driver/include/driver/adc.h>
 
 //#include "../../components/arduino-esp32/cores/esp32/Arduino.h"
 #include "esp32-hal.h"

@@ -1,12 +1,12 @@
-[submodule "ubirch-mbed-msgpack"]
-	path = ubirch-mbed-msgpack
-	url = https://github.com/ubirch/ubirch-mbed-msgpack
-[submodule "ubirch-mbed-nacl-cm0"]
-	path = ubirch-mbed-nacl-cm0
-	url = https://github.com/ubirch/ubirch-mbed-nacl-cm0
-[submodule "ubirch-protocol"]
-	path = ubirch-protocol
-	url = https://github.com/ubirch/ubirch-protocol
+[submodule "components/ubirch-mbed-msgpack"]
+	path = components/ubirch-mbed-msgpack
+	url = https://github.com/ubirch/ubirch-mbed-msgpack.git
+[submodule "components/ubirch-mbed-nacl-cm0"]
+	path = components/ubirch-mbed-nacl-cm0
+	url = https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
+[submodule "components/ubirch-protocol"]
+	path = components/ubirch-protocol
+	url = https://github.com/ubirch/ubirch-protocol.git
 [submodule "components/arduino-esp32"]
 	path = components/arduino-esp32
-	url = https://github.com/espressif/arduino-esp32.git
+	url = https://github.com/ubirch/arduino-esp32.git

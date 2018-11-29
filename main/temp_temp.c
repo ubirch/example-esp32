@@ -12,7 +12,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_timer.h>
-#include <../../components/arduino/cores/esp32/esp32-hal-gpio.h>
+#include <esp32-hal-gpio.h>
+//#include <../../components/arduino/cores/esp32/esp32-hal-gpio.h>
 //#include <esp32-hal-gpio.h>
 
 

@@ -14,17 +14,36 @@ if (NOT DEFINED ENV{IDF_PATH})
 else ()
     set(IDF_PATH $ENV{IDF_PATH})
 endif ()
-
-#set(ENV{IDF_PATH} /home/ESP/arduino_lib_test/esp-idf/)
-#set(IDF_PATH /home/ESP/arduino_lib_test/esp-idf/)
-message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
+message(STATUS "IDF_PATH: ${IDF_PATH}")
 
 # add some necessary defnitions
 add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 
 # set the components, EXCLUDING libsodium, because of the conflict with ubirch-mbed-nacl-cm0
-set(COMPONENTS arduino;soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;esp_http_client;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;idf_test;json;mdns;openssl;spiffs;ulp)
+set(COMPONENTS soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;esp_http_client;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;idf_test;json;mdns;openssl;spiffs;ulp)
 
+# set the components local to our project
+set(PROJECT_COMPONENTS ubirch-mbed-msgpack ubirch-mbed-nacl-cm0 ubirch-protocol arduino-esp32)
+
+# go through the list of components and link or copy the CMakeLists.txt if necessary
+foreach (C_DIR ${PROJECT_COMPONENTS})
+    if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/CMakeLists.txt")
+        if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/esp32.cmake")
+            if (CMAKE_HOST_UNIX)
+                set(LINK_OR_COPY create_symlink)
+            else ()
+                set(LINK_OR_COPY copy)
+            endif ()
+
+            set(ESP32CMAKE ${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/esp32.cmake)
+            set(CMAKELISTSTXT ${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/CMakeLists.txt)
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E ${LINK_OR_COPY} "${ESP32CMAKE}" "${CMAKELISTSTXT}"
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}")
+        endif ()
+    else ()
+        list(APPEND COMPONENTS ${C_DIR})
+    endif ()
+endforeach ()
 list(APPEND COMPONENTS main)
 #set(CMAKE_VERBOSE_MAKEFILE 1)
 

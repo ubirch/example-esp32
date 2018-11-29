@@ -7,7 +7,7 @@
 #include <ubirch_protocol.h>
 #include <nvs_flash.h>
 #include "key_handling.h"
-#include "wifi.h"
+#include "networking.h"
 #include "storage.h"
 
 static const char *TAG = "storage";

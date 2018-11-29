@@ -36,7 +36,7 @@
 #include "esp32-hal-adc.h"
 
 #include "util.h"
-#include "wifi.h"
+#include "networking.h"
 #include "sntp_time.h"
 
 

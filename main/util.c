@@ -33,17 +33,6 @@ unsigned char UUID[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
 };
 
 
-/*
- * print out hex data on console output
- */
-void print_message(const char *data, size_t size){
-    int i = 0;
-    for (i = 0; i < size; ++i) {
-        printf("%02x",data[i]);
-    }
-    printf("\r\n");
-}
-
 void set_hw_ID(void) {
     esp_efuse_mac_get_default(UUID);
     esp_base_mac_addr_set(UUID);

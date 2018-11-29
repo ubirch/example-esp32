@@ -58,12 +58,11 @@ const unsigned char server_pub_key[crypto_sign_PUBLICKEYBYTES] = {
  */
 void create_keys(void) {
     ESP_LOGI(TAG, "create keys");
-    if (0) {}
     crypto_sign_keypair(ed25519_public_key, ed25519_secret_key);
     ESP_LOGI(TAG, "secretKey");
-    print_message((const char *) (ed25519_secret_key), crypto_sign_SECRETKEYBYTES);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, (const char *) (ed25519_secret_key), crypto_sign_SECRETKEYBYTES, ESP_LOG_DEBUG);
     ESP_LOGI(TAG, "publicKey");
-    print_message((const char *) (ed25519_public_key), crypto_sign_PUBLICKEYBYTES);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, (const char *) (ed25519_public_key), crypto_sign_PUBLICKEYBYTES, ESP_LOG_DEBUG);
 }
 
 

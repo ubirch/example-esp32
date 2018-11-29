@@ -30,7 +30,7 @@
 #include "util.h"
 
 #include "key_handling.h"
-#include "wifi.h"
+#include "networking.h"
 
 
 #include "console_cmd.h"

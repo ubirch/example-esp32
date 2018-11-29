@@ -22,9 +22,6 @@
  * ```
  */
 
-#define CONNECTED_BIT   BIT0
-#define CONFIGURED_BIT  BIT1
-#define READY_BIT       BIT15
 
 #ifndef UTIL_H
 #define UTIL_H

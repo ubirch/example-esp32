@@ -23,7 +23,13 @@ add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 set(COMPONENTS soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;esp_http_client;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;idf_test;json;mdns;openssl;spiffs;ulp)
 
 # set the components local to our project
-set(PROJECT_COMPONENTS ubirch-mbed-msgpack ubirch-mbed-nacl-cm0 ubirch-protocol arduino-esp32)
+set(PROJECT_COMPONENTS
+        ubirch-esp32-networking
+        ubirch-mbed-msgpack
+        ubirch-mbed-nacl-cm0
+        ubirch-protocol
+        arduino-esp32
+        )
 
 # go through the list of components and link or copy the CMakeLists.txt if necessary
 foreach (C_DIR ${PROJECT_COMPONENTS})
@@ -51,4 +57,3 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 # now configure the project
 project(example-esp32)
-

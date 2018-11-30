@@ -4,7 +4,6 @@ set(COMPONENT_SRCS
         util.c
         settings.h
         ubirch_proto_http.c
-        storage.c
         temp_temp.c
         )
 
@@ -17,6 +16,7 @@ set(COMPONENT_DEPENDS
         ubirch-mbed-msgpack
         ubirch-mbed-nacl-cm0
         ubirch-protocol
+        ubirch-esp32-storage
         )
 
 register_component()

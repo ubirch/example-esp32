@@ -28,6 +28,7 @@
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <esp_log.h>
+#include "storage.h"
 //#include <../../components/vfs/include/esp_vfs_dev.h>
 //#include <home/ESP/arduino_lib_test/esp-idf/components/driver/include/driver/adc.h>
 
@@ -47,7 +48,6 @@
 //#include "temp_sensor.h"
 #include "temp_temp.h"
 //#include "esp32-hal-adc.h"
-#include "storage.h"
 
 // message response
 extern int response;
@@ -174,13 +174,20 @@ esp_err_t init_system() {
 
 void app_main() {
 
+    esp_err_t err;
     init_system();
 
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
-    if (!load_wifi_login(&wifi)) {
+//    memory_error_check(kv_store("wifi_data", "wifi_ssid", "FTWK Fritzbox", 14));
+//    memory_error_check(kv_store("wifi_data", "wifi_pwd", "HELLOFTWK", 10));
 
+    err = kv_load("wifi_data", "wifi_ssid", &wifi.ssid, &wifi.ssid_length);
+    ESP_LOGD(TAG, "%s", wifi.ssid);
+    if(err == ESP_OK) {
+        kv_load("wifi_data", "wifi_pwd", &wifi.pwd, &wifi.pwd_length);
+        ESP_LOGD(TAG, "%s", wifi.pwd);
         if (wifi_join(wifi, 5000)) {
             ESP_LOGI(TAG, "established");
         }

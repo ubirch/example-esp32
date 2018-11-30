@@ -115,7 +115,7 @@ void network_config_task(void *pvParameters){
         //
         if (event_bits == CONNECTED_BIT) {
             ESP_LOGI("event group bit check", "wifi enabled");
-            obtain_time();
+            sntp_update();
             register_keys();
             //
             xEventGroupSetBits(wifi_event_group, READY_BIT);
@@ -182,13 +182,14 @@ void app_main() {
 
 //    memory_error_check(kv_store("wifi_data", "wifi_ssid", "FTWK Fritzbox", 14));
 //    memory_error_check(kv_store("wifi_data", "wifi_pwd", "HELLOFTWK", 10));
+//    char wifi_ssid[]
 
     err = kv_load("wifi_data", "wifi_ssid", &wifi.ssid, &wifi.ssid_length);
-    ESP_LOGD(TAG, "%s", wifi.ssid);
     if(err == ESP_OK) {
+        ESP_LOGD(TAG, "%s", wifi.ssid);
         kv_load("wifi_data", "wifi_pwd", &wifi.pwd, &wifi.pwd_length);
         ESP_LOGD(TAG, "%s", wifi.pwd);
-        if (wifi_join(wifi, 5000)) {
+    if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
         }
         else { // no connection

@@ -179,8 +179,7 @@ void app_main() {
         ESP_LOGD(TAG, "%s", wifi.pwd);
         if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
-        }
-        else { // no connection
+        } else { // no connection possible
             ESP_LOGW(TAG, "no valid Wifi");
         }
     }

@@ -62,7 +62,6 @@ static const char *TAG = "HTTP_CLIENT";
 
 size_t rcv_buffer_size = 100;
 msgpack_unpacker *unpacker = NULL;
-//#define DEBUG_MESSAGE     // uncomment for message debugging, will print out the binary message in hex
 
 /*!
  * Event handler for all HTTP events.
@@ -90,16 +89,12 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
         case HTTP_EVENT_ON_DATA:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                // Write out data
-//                printf("%.*s", evt->data_len, (char *) evt->data);
-#ifdef DEBUG_MESSAGE
-                print_message(evt->data, evt->data_len);
-#endif /* DEBUG_MESSAGE */
+                ESP_LOG_BUFFER_HEXDUMP(TAG, evt->data, (uint16_t) evt->data_len, ESP_LOG_DEBUG);
                 if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
-                    msgpack_unpacker_reserve_buffer(unpacker, evt->data_len);
+                    msgpack_unpacker_reserve_buffer(unpacker, (uint16_t) evt->data_len);
                 }
-                memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
-                msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
+                memcpy(msgpack_unpacker_buffer(unpacker), evt->data, (uint16_t) evt->data_len);
+                msgpack_unpacker_buffer_consumed(unpacker, (uint16_t) evt->data_len);
             }
             break;
         case HTTP_EVENT_ON_FINISH:
@@ -168,16 +163,15 @@ void parse_payload(msgpack_unpacker *unpacker) {
     if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJECT_ARRAY) {
         // redirect the result to the envelope
         msgpack_object *envelope = result.data.via.array.ptr;
-        int p_version = 0;
+        unsigned int p_version = 0;
         // get the envelope version
         if (envelope->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
             p_version = (int) envelope->via.u64;
-            ESP_LOGI(TAG, "VERSION: %d (variant %d)\r\n", p_version >> 4, p_version & 0xf);
+            ESP_LOGI(TAG, "VERSION: %d (variant %d)\r\n", p_version >> 4U, p_version & 0xfU);
         }
         // get the backend UUID
         if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
-            ESP_LOGI(TAG, "UUID: ");
-            // print_message(envelope->via.raw.ptr, envelope->via.raw.size);
+            ESP_LOG_BUFFER_HEX_LEVEL("UUID", envelope->via.raw.ptr, (uint16_t) envelope->via.raw.size, ESP_LOG_DEBUG);
         }
         // only continue if the envelope version and variant match
         if (p_version == proto_chained) {
@@ -189,9 +183,7 @@ void parse_payload(msgpack_unpacker *unpacker) {
             // compare the previous signature to the received one
             bool prevSignatureMatches = false;
             if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
-#ifdef DEBUG_MESSAGE
-                print_message(envelope->via.raw.ptr, envelope->via.raw.size);
-#endif /* DEBUG_MESSAGE */
+                ESP_LOG_BUFFER_HEXDUMP(TAG, envelope->via.raw.ptr, (uint16_t) envelope->via.raw.size, ESP_LOG_DEBUG);
                 if (envelope->via.raw.size == crypto_sign_BYTES) {
                     prevSignatureMatches = !memcmp(prev_signature, envelope->via.raw.ptr, UBIRCH_PROTOCOL_SIGN_SIZE);
                 }
@@ -271,8 +263,9 @@ void create_message(int32_t *values, uint16_t num) {
                                                  sbuf, msgpack_sbuffer_write, esp32_ed25519_sign, UUID);
     msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
     // load the old signature and copy it to the protocol
-    unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
-    if (load_signature(old_signature)) {
+    unsigned char *old_signature = NULL;
+    size_t sign_len = UBIRCH_PROTOCOL_SIGN_SIZE;
+    if (kv_load("sign_storage", "signature", (void **) &old_signature, &sign_len) != ESP_OK) {
         ESP_LOGW(TAG, "error loading the old signature");
     }
     memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
@@ -294,12 +287,10 @@ void create_message(int32_t *values, uint16_t num) {
     //
     // finish the protocol
     ubirch_protocol_finish(proto, pk);
-    if (store_signature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
+    if (kv_store("sign_storage", "signature", proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE) != ESP_OK) {
         ESP_LOGW(TAG, "error storing the signature");
     }
-#ifdef DEBUG_MESSAGE
-    print_message((const char *) (sbuf->data), (size_t) (sbuf->size));
-#endif /* DEBUG_MESSAGE */
+    ESP_LOG_BUFFER_HEXDUMP(TAG, sbuf->data, (uint16_t) sbuf->size, ESP_LOG_DEBUG);
     // send the message
     http_post_task(UHTTP_URL, (const char *) (sbuf->data), sbuf->size);
 

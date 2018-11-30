@@ -28,26 +28,17 @@
 #include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <esp_log.h>
+#include <esp32-hal.h>
+#include <networking.h>
+#include <sntp_time.h>
+#include <ubirch_console.h>
+
+#include "esp_event_loop.h"
+
 #include "storage.h"
-//#include <../../components/vfs/include/esp_vfs_dev.h>
-//#include <home/ESP/arduino_lib_test/esp-idf/components/driver/include/driver/adc.h>
-
-//#include "../../components/arduino-esp32/cores/esp32/Arduino.h"
-#include "esp32-hal.h"
-#include "esp32-hal-adc.h"
-
-#include "util.h"
-#include "networking.h"
-#include "sntp_time.h"
-
-
-#include "key_handling.h"
 #include "ubirch_proto_http.h"
-#include "ubirch_console.h"
-
-//#include "temp_sensor.h"
-#include "temp_temp.h"
-//#include "esp32-hal-adc.h"
+#include "key_handling.h"
+#include "util.h"
 
 // message response
 extern int response;
@@ -112,7 +103,8 @@ void network_config_task(void *pvParameters){
                                          false,
                                          false,
                                          portMAX_DELAY);
-        //
+        // only update the sntp time and register the key, when a network connection
+        // has currently been established.
         if (event_bits == CONNECTED_BIT) {
             ESP_LOGI("event group bit check", "wifi enabled");
             sntp_update();
@@ -180,16 +172,12 @@ void app_main() {
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
-//    memory_error_check(kv_store("wifi_data", "wifi_ssid", "FTWK Fritzbox", 14));
-//    memory_error_check(kv_store("wifi_data", "wifi_pwd", "HELLOFTWK", 10));
-//    char wifi_ssid[]
-
-    err = kv_load("wifi_data", "wifi_ssid", &wifi.ssid, &wifi.ssid_length);
+    err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
     if(err == ESP_OK) {
         ESP_LOGD(TAG, "%s", wifi.ssid);
-        kv_load("wifi_data", "wifi_pwd", &wifi.pwd, &wifi.pwd_length);
+        kv_load("wifi_data", "wifi_pwd", (void **) &wifi.pwd, &wifi.pwd_length);
         ESP_LOGD(TAG, "%s", wifi.pwd);
-    if (wifi_join(wifi, 5000) == ESP_OK) {
+        if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
         }
         else { // no connection

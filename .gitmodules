@@ -13,9 +13,9 @@
 [submodule "components/ubirch-esp32-networking"]
 	path = components/ubirch-esp32-networking
 	url = https://github.com/ubirch/ubirch-esp32-networking
-[submodule "components/components/ubirch-esp32-console"]
-	path = components/components/ubirch-esp32-console
-	url = https://github.com/ubirch/ubirch-esp32-console
 [submodule "components/ubirch-esp32-console"]
 	path = components/ubirch-esp32-console
 	url = https://github.com/ubirch/ubirch-esp32-console
+[submodule "components/ubirch-esp32-storage"]
+	path = components/ubirch-esp32-storage
+	url = https://github.com/ubirch/ubirch-esp32-storage.git

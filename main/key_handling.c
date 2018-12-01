@@ -29,13 +29,11 @@
 #include <time.h>
 #include <esp_log.h>
 #include <storage.h>
+#include <ubirch_api.h>
 
 #include "ubirch_ed25519.h"
 #include "ubirch_protocol_kex.h"
 
-#include "util.h"
-#include "ubirch_proto_http.h"
-#include "settings.h"
 #include "key_handling.h"
 
 static const char *TAG = "KEY_HANDLING";
@@ -75,36 +73,22 @@ void create_keys(void) {
 bool load_keys(void) {
     ESP_LOGI(TAG, "read keys");
     esp_err_t err;
+
+    unsigned char *key;
+
     // read the secret key
     size_t size_sk = sizeof(ed25519_secret_key);
-    err = kv_load("key_storage", "secret_key", (void **) &ed25519_secret_key, &size_sk);
+    err = kv_load("key_storage", "secret_key", (void **) &key, &size_sk);
     if (memory_error_check(err)) return true;
+    memcpy(key, ed25519_secret_key, size_sk);
+
     // read the public key
     size_t size_pk = sizeof(ed25519_public_key);
-    err = kv_load("key_storage", "public_key", (void **) &ed25519_public_key, &size_pk);
+    err = kv_load("key_storage", "public_key", (void **) &key, &size_pk);
     if (memory_error_check(err)) return true;
+    memcpy(key, ed25519_public_key, size_pk);
 
     return false;
-//    nvs_handle keyHandle;
-//    // open the memory
-//    esp_err_t err = nvs_open("key_storage", NVS_READONLY, &keyHandle);
-//    if (memory_error_check(err))
-//        return true;
-//    // read the secret key
-//    size_t size_sk = sizeof(ed25519_secret_key);
-//    err = nvs_get_blob(keyHandle, "secret_key", ed25519_secret_key, &size_sk);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // read the public key
-//    size_t size_pk = sizeof(ed25519_public_key);
-//    err = nvs_get_blob(keyHandle, "public_key", ed25519_public_key, &size_pk);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // close the memory
-//    nvs_close(keyHandle);
-//    return false;
 }
 
 /*!
@@ -125,33 +109,6 @@ bool store_keys(void) {
         return true;
 
     return false;
-
-//    nvs_handle keyHandle;
-//    // open the memory
-//    esp_err_t err = nvs_open("key_storage", NVS_READWRITE, &keyHandle);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // read the secret key
-//    size_t size_sk = sizeof(ed25519_secret_key);
-//    err = nvs_set_blob(keyHandle, "secret_key", ed25519_secret_key, size_sk);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // read the public key
-//    size_t size_pk = sizeof(ed25519_public_key);
-//    err = nvs_set_blob(keyHandle, "public_key", ed25519_public_key, size_pk);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // ensure the changes are written to the memory
-//    err = nvs_commit(keyHandle);
-//    if (memory_error_check(err))
-//        return true;
-//
-//    // close the memory
-//    nvs_close(keyHandle);
-//    return false;
 }
 
 bool get_public_key(char *key_buffer) {
@@ -190,7 +147,7 @@ void register_keys(void) {
     // finish the ubirch protocol message
     ubirch_protocol_finish(proto, pk);
     // send the data
-    http_post_task(UKEY_SERVICE_URL, sbuf->data, sbuf->size);
+    ubirch_send(CONFIG_UBIRCH_BACKEND_KEY_SERVER_URL, sbuf->data, sbuf->size, NULL);
     // free allocated ressources
     msgpack_packer_free(pk);
     ubirch_protocol_free(proto);

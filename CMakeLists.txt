@@ -24,12 +24,14 @@ set(COMPONENTS soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapt
 
 # set the components local to our project
 set(PROJECT_COMPONENTS
-        ubirch-esp32-networking
+        arduino-esp32
+        ubirch-esp32-api-http
         ubirch-esp32-console
+        ubirch-esp32-networking
+        ubirch-esp32-storage
         ubirch-mbed-msgpack
         ubirch-mbed-nacl-cm0
         ubirch-protocol
-        arduino-esp32
         )
 
 # go through the list of components and link or copy the CMakeLists.txt if necessary

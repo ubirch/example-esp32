@@ -31,14 +31,14 @@
 #include <networking.h>
 #include <sntp_time.h>
 #include <ubirch_console.h>
+#include <msgpack.h>
+#include <response.h>
+#include <message.h>
+#include <ubirch_api.h>
 
 #include "storage.h"
-#include "ubirch_proto_http.h"
 #include "key_handling.h"
 #include "util.h"
-
-// message response
-extern int response;
 
 #define BLUE_LED GPIO_NUM_2
 #define BOOT_BUTTON GPIO_NUM_0
@@ -55,6 +55,32 @@ static TaskHandle_t console_handle = NULL;
 
 extern EventGroupHandle_t wifi_event_group;
 
+extern unsigned char UUID[16];
+TickType_t interval = CONFIG_UBIRCH_DEFAULT_INTERVAL;
+
+static void response_handler(const msgpack_object_kv *entry) {
+    if (match(entry, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
+        interval = (unsigned int) (entry->val.via.u64);
+    } else {
+        ESP_LOGW(TAG, "unknown configuration received: %.*s", entry->key.via.raw.size, entry->key.via.raw.ptr);
+    }
+}
+
+static esp_err_t send_message(float temperature, float humidity) {
+    msgpack_sbuffer *sbuf = msgpack_sbuffer_new(); //!< send buffer
+    msgpack_unpacker *unpacker = msgpack_unpacker_new(128); //!< receive unpacker
+
+    int32_t values[2] = {(int32_t) (temperature * 100), (int32_t) (humidity * 100)};
+    ubirch_message(sbuf, UUID, values, sizeof(values) / sizeof(values[0]));
+
+    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, sbuf->data, sbuf->size, unpacker);
+    ubirch_parse_response(unpacker, response_handler);
+
+    msgpack_unpacker_free(unpacker);
+    msgpack_sbuffer_free(sbuf);
+
+    return ESP_OK;
+}
 
 void main_task(void *pvParameters){
     // get the current tick count to run the task periodic
@@ -74,17 +100,16 @@ void main_task(void *pvParameters){
                                          portMAX_DELAY);
         //
         if (event_bits & READY_BIT) {
-            int32_t values[2];
             // let the LED blink
-            if (response < 1000) {
-                gpio_set_level(BLUE_LED, 0);
-            } else gpio_set_level(BLUE_LED, 1);
+            if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
 
-            values[0] = hallRead();
+            int f_hall = hallRead();
             float f_temperature = temperatureRead();
-            values[1] = (int32_t)(f_temperature);
-            ESP_LOGI(TAG, "Hall Sensor = %d \r\nTemp. Sensor = %f", values[0], f_temperature);
-            create_message(values, 2);
+            ESP_LOGI(TAG, "Hall Sensor = %d ", f_hall);
+            ESP_LOGI(TAG, "Temp Sensor = %f", f_temperature);
+
+            send_message(f_hall, f_temperature);
+
             vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(task_period_ms));
         }
     }

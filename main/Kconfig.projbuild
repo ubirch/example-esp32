@@ -1,0 +1,21 @@
+menu "UBIRCH Application"
+
+config UBIRCH_BACKEND_DATA_URL
+    string "ubirch-protocol data URL"
+    default "https://api.ubirch.dev.ubirch.com/api/avatarService/v1/device/update/mpack"
+    help
+        The URL to send ubirch protocol messages to.
+
+config UBIRCH_BACKEND_KEY_SERVER_URL
+	string "ubirch key server URL"
+	default "https://key.dev.ubirch.com/api/keyService/v1/pubkey/mpack"
+	help
+		The key server URL to register public keys.
+
+config UBIRCH_DEFAULT_INTERVAL
+	int "ubirch sensor measuring interval (ms)"
+	default 30000
+	help
+		The default measuring interval.
+		
+endmenu

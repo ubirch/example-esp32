@@ -37,7 +37,6 @@
 
 #include <string.h>
 #include "freertos/FreeRTOS.h"
-#include <freertos/task.h>
 #include "esp_log.h"
 
 
@@ -47,14 +46,13 @@
 
 
 #include "esp_http_client.h"
-#include "util.h"
 #include "key_handling.h"
 #include "settings.h"
-#include "sntp_time.h"
 #include "storage.h"
 #include "ubirch_proto_http.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
+#define TIME_RES_SEC 1000
 
 extern unsigned char UUID[16];
 
@@ -253,6 +251,15 @@ bool match(const msgpack_object_kv *map, const char *key, const int type) {
            map->key.via.raw.size == keyLength &&
            (type == -1 || map->val.type == type) &&
            !memcmp(key, map->key.via.raw.ptr, keyLength);
+}
+
+static uint64_t get_time_us() {
+    time_t now = time(NULL);
+    int64_t timer = esp_timer_get_time();
+    uint64_t time_us =
+            ((uint64_t) (now) * TIME_RES_SEC) + (((uint64_t) (timer) * TIME_RES_SEC / 1000000) % TIME_RES_SEC);
+    ESP_LOGD(TAG, "= %llu", time_us);
+    return time_us;
 }
 
 

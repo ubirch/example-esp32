@@ -1,6 +1,7 @@
 build/
 sdkconfig.old
 gdbinit
-cmake-build-debug
+cmake-build-*
 .idea/
+.vscode/
 main/settings.h

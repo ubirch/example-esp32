@@ -26,14 +26,11 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
-#include <nvs_flash.h>
 #include <esp_log.h>
 #include <esp32-hal.h>
 #include <networking.h>
 #include <sntp_time.h>
 #include <ubirch_console.h>
-
-#include "esp_event_loop.h"
 
 #include "storage.h"
 #include "ubirch_proto_http.h"
@@ -174,9 +171,9 @@ void app_main() {
 
     err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
     if(err == ESP_OK) {
-        ESP_LOGD(TAG, "%s", wifi.ssid);
+        ESP_LOGD(TAG, "SSID: %.*s", wifi.ssid_length, wifi.ssid);
         kv_load("wifi_data", "wifi_pwd", (void **) &wifi.pwd, &wifi.pwd_length);
-        ESP_LOGD(TAG, "%s", wifi.pwd);
+        ESP_LOGD(TAG, "PASS: %.*s", wifi.pwd_length, wifi.pwd);
         if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
         } else { // no connection possible

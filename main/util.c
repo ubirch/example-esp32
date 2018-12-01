@@ -39,8 +39,8 @@ void set_hw_ID(void) {
 }
 
 void get_hw_ID(void) {
-    ESP_LOGI("Hardware-Device-ID", " %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
-             UUID[0],UUID[1],UUID[2], UUID[3], UUID[4],UUID[5],UUID[6],UUID[7],
-             UUID[8], UUID[9], UUID[10],UUID[11],UUID[12], UUID[13], UUID[14],UUID[15]);
+    printf("Hardware-Device-ID: %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
+           UUID[0], UUID[1], UUID[2], UUID[3], UUID[4], UUID[5], UUID[6], UUID[7],
+           UUID[8], UUID[9], UUID[10], UUID[11], UUID[12], UUID[13], UUID[14], UUID[15]);
 
 }

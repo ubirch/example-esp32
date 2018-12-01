@@ -28,6 +28,7 @@
 #include <nvs.h>
 #include <time.h>
 #include <esp_log.h>
+#include <storage.h>
 
 #include "ubirch_ed25519.h"
 #include "ubirch_protocol_kex.h"
@@ -73,26 +74,37 @@ void create_keys(void) {
  */
 bool load_keys(void) {
     ESP_LOGI(TAG, "read keys");
-    nvs_handle keyHandle;
-    // open the memory
-    esp_err_t err = nvs_open("key_storage", NVS_READONLY, &keyHandle);
-    if (memory_error_check(err))
-        return true;
+    esp_err_t err;
     // read the secret key
     size_t size_sk = sizeof(ed25519_secret_key);
-    err = nvs_get_blob(keyHandle, "secret_key", ed25519_secret_key, &size_sk);
-    if (memory_error_check(err))
-        return true;
-
+    err = kv_load("key_storage", "secret_key", (void **) &ed25519_secret_key, &size_sk);
+    if (memory_error_check(err)) return true;
     // read the public key
     size_t size_pk = sizeof(ed25519_public_key);
-    err = nvs_get_blob(keyHandle, "public_key", ed25519_public_key, &size_pk);
-    if (memory_error_check(err))
-        return true;
+    err = kv_load("key_storage", "public_key", (void **) &ed25519_public_key, &size_pk);
+    if (memory_error_check(err)) return true;
 
-    // close the memory
-    nvs_close(keyHandle);
     return false;
+//    nvs_handle keyHandle;
+//    // open the memory
+//    esp_err_t err = nvs_open("key_storage", NVS_READONLY, &keyHandle);
+//    if (memory_error_check(err))
+//        return true;
+//    // read the secret key
+//    size_t size_sk = sizeof(ed25519_secret_key);
+//    err = nvs_get_blob(keyHandle, "secret_key", ed25519_secret_key, &size_sk);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // read the public key
+//    size_t size_pk = sizeof(ed25519_public_key);
+//    err = nvs_get_blob(keyHandle, "public_key", ed25519_public_key, &size_pk);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // close the memory
+//    nvs_close(keyHandle);
+//    return false;
 }
 
 /*!
@@ -102,32 +114,44 @@ bool load_keys(void) {
  */
 bool store_keys(void) {
     ESP_LOGI(TAG, "write keys");
-    nvs_handle keyHandle;
-    // open the memory
-    esp_err_t err = nvs_open("key_storage", NVS_READWRITE, &keyHandle);
+    esp_err_t err;
+    // store the secret key
+    err = kv_store("key_storage", "secret_key", ed25519_secret_key, sizeof(ed25519_secret_key));
+    if (memory_error_check(err))
+        return true;
+    //store the public key
+    err = kv_store("key_storage", "public_key", ed25519_public_key, sizeof(ed25519_public_key));
     if (memory_error_check(err))
         return true;
 
-    // read the secret key
-    size_t size_sk = sizeof(ed25519_secret_key);
-    err = nvs_set_blob(keyHandle, "secret_key", ed25519_secret_key, size_sk);
-    if (memory_error_check(err))
-        return true;
-
-    // read the public key
-    size_t size_pk = sizeof(ed25519_public_key);
-    err = nvs_set_blob(keyHandle, "public_key", ed25519_public_key, size_pk);
-    if (memory_error_check(err))
-        return true;
-
-    // ensure the changes are written to the memory
-    err = nvs_commit(keyHandle);
-    if (memory_error_check(err))
-        return true;
-
-    // close the memory
-    nvs_close(keyHandle);
     return false;
+
+//    nvs_handle keyHandle;
+//    // open the memory
+//    esp_err_t err = nvs_open("key_storage", NVS_READWRITE, &keyHandle);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // read the secret key
+//    size_t size_sk = sizeof(ed25519_secret_key);
+//    err = nvs_set_blob(keyHandle, "secret_key", ed25519_secret_key, size_sk);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // read the public key
+//    size_t size_pk = sizeof(ed25519_public_key);
+//    err = nvs_set_blob(keyHandle, "public_key", ed25519_public_key, size_pk);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // ensure the changes are written to the memory
+//    err = nvs_commit(keyHandle);
+//    if (memory_error_check(err))
+//        return true;
+//
+//    // close the memory
+//    nvs_close(keyHandle);
+//    return false;
 }
 
 bool get_public_key(char *key_buffer) {

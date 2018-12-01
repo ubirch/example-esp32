@@ -58,7 +58,7 @@
 
 extern unsigned char UUID[16];
 
-static const char *TAG = "HTTP_CLIENT";
+static const char *TAG = "U_HTTP_CLIENT";
 
 size_t rcv_buffer_size = 100;
 msgpack_unpacker *unpacker = NULL;
@@ -262,6 +262,7 @@ void create_message(int32_t *values, uint16_t num) {
     ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
                                                  sbuf, msgpack_sbuffer_write, esp32_ed25519_sign, UUID);
     msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
+
     // load the old signature and copy it to the protocol
     unsigned char *old_signature = NULL;
     size_t sign_len = UBIRCH_PROTOCOL_SIGN_SIZE;
@@ -269,6 +270,8 @@ void create_message(int32_t *values, uint16_t num) {
         ESP_LOGW(TAG, "error loading the old signature");
     }
     memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
+    free(old_signature);
+
     // start the protocol
     ubirch_protocol_start(proto, pk);
     //
@@ -285,7 +288,7 @@ void create_message(int32_t *values, uint16_t num) {
     //
     // END OF PAYLOAD
     //
-    // finish the protocol
+    // finish the protocol and store the signature for the next message
     ubirch_protocol_finish(proto, pk);
     if (kv_store("sign_storage", "signature", proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE) != ESP_OK) {
         ESP_LOGW(TAG, "error storing the signature");

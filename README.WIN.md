@@ -29,3 +29,24 @@ set(CMAKE_ASM_COMPILER C:/msys32/opt/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc.e
 ## Compile and flash
 
 > CLion: Select `app` or `app-flash` to build and flash, then click on build.
+
+### Visual Studio Code (Microsoft IDE)
+
+- open [Visual Studio Code]() and load the project directory using `File -> Open`
+- open the extensions window: `Code -> Preferences -> Extensions`
+- Install the *CMake Tools*, *CMake language support* and *CMake Tools Helper*
+- Before our project configures correctly, we need to add the `IDF_PATH` environment variable:
+    - Open `Code -> Preferences -> Settings`
+    - Select `Extensions` and `CMake Configuration`
+    - Under `CMake Build Args` click on `Edit settings.json`
+    - Add this fragment to the file in front of other settings and save:
+        ```json
+        "cmake.environment": {
+            "IDF_PATH": "/usr/local/opt/esp-idf"
+        },
+        ```
+    - Restart Visual Studio Code
+    - Visual Studio will also ask for the Compiler Kit:
+    - Select `xtensa-esp32-elf`
+    - After opening, if Code asks to configure the project, click `Yes`
+- Compile all using `F7` or click at the bottom of the window on `Build`

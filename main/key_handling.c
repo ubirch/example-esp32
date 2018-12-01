@@ -162,13 +162,3 @@ void check_key_status(void) {
 //        register_keys();
     }
 }
-
-
-int esp32_ed25519_sign(const unsigned char *data, size_t len, unsigned char *signature) {
-    return ed25519_sign_key(data, len, signature, ed25519_secret_key);
-}
-
-int esp32_ed25519_verify(const unsigned char *data, size_t len, const unsigned char *signature) {
-    return ed25519_verify_key(data, len, signature, server_pub_key);
-}
-

@@ -7,7 +7,7 @@ set(COMPONENT_SRCS
 
 set(COMPONENT_ADD_INCLUDEDIRS "${CMAKE_CURRENT_LIST_DIR}")
 
-set(COMPONENT_DEPENDS
+set(COMPONENT_REQUIRES
         arduino-esp32
         ubirch-esp32-api-http
         ubirch-esp32-console

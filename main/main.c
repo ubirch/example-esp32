@@ -82,17 +82,17 @@ static esp_err_t send_message(float temperature, float humidity) {
     return ESP_OK;
 }
 
-void main_task(void *pvParameters){
+void main_task(void *pvParameters) {
     // get the current tick count to run the task periodic
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint32_t task_period_ms = 3000; //!< period for the task in ms, default value = 30 sec.
-    if (pvParameters != NULL){
-        task_period_ms = *(uint32_t*)(pvParameters);
+    if (pvParameters != NULL) {
+        task_period_ms = *(uint32_t *) (pvParameters);
     }
 
     EventBits_t event_bits;
 
-    for(;;) {
+    for (;;) {
         event_bits = xEventGroupWaitBits(wifi_event_group, READY_BIT, false, false, portMAX_DELAY);
         //
         if (event_bits & READY_BIT) {
@@ -111,11 +111,11 @@ void main_task(void *pvParameters){
     }
 }
 
-void network_config_task(void *pvParameters){
+void network_config_task(void *pvParameters) {
     ESP_LOGI("network config", "started");
     EventBits_t event_bits;
 
-    for(;;) {
+    for (;;) {
         event_bits = xEventGroupWaitBits(wifi_event_group,
                                          (CONNECTED_BIT | CONFIGURED_BIT | READY_BIT),
                                          false,
@@ -129,18 +129,17 @@ void network_config_task(void *pvParameters){
             register_keys();
             //
             xEventGroupSetBits(wifi_event_group, READY_BIT);
-        }
-        else {
+        } else {
             vTaskDelay(portMAX_DELAY);
         }
     }
 }
 
-void enter_console(void *pvParameter){
+void enter_console(void *pvParameter) {
     char c;
     for (;;) {
         c = fgetc(stdin);
-        if(c == 0x03) {  //0x03 = Ctrl + C
+        if (c == 0x03) {  //0x03 = Ctrl + C
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
             vTaskSuspend(main_task_handle);
             vTaskSuspend(net_config_handle);
@@ -179,7 +178,6 @@ esp_err_t init_system() {
 }
 
 
-
 void app_main() {
 
     esp_err_t err;
@@ -189,7 +187,7 @@ void app_main() {
     struct Wifi_login wifi;
 
     err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
-    if(err == ESP_OK) {
+    if (err == ESP_OK) {
         ESP_LOGD(TAG, "SSID: %.*s", wifi.ssid_length, wifi.ssid);
         kv_load("wifi_data", "wifi_pwd", (void **) &wifi.pwd, &wifi.pwd_length);
         ESP_LOGD(TAG, "PASS: %.*s", wifi.pwd_length, wifi.pwd);
@@ -200,18 +198,15 @@ void app_main() {
         }
         free(wifi.ssid);
         free(wifi.pwd);
-    }
-    else {  // no WiFi connection
+    } else {  // no WiFi connection
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
     xTaskCreate(&main_task, "hello_task", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&network_config_task, "network_config", 4096, NULL, 5, &net_config_handle);
-    xTaskCreate(&enter_console, "enter_console", 4096, NULL, 1, &console_handle );
+    xTaskCreate(&enter_console, "enter_console", 4096, NULL, 1, &console_handle);
 
-    while (true) {
-        vTaskSuspend(NULL);
-    }
+    vTaskSuspend(NULL);
 }
 
 

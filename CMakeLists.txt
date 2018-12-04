@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
+#set(DEBUG 1)
 
 # check and set the IDF_PATH
 message(STATUS "$ENV{IDF_PATH}")
@@ -21,23 +22,10 @@ message(STATUS "IDF_PATH: ${IDF_PATH}")
 # add some necessary defnitions
 add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 
-# set the components, EXCLUDING libsodium, because of the conflict with ubirch-mbed-nacl-cm0
-#set(COMPONENTS soc;log;heap;freertos;vfs;newlib;driver;ethernet;lwip;tcpip_adapter;partition_table;app_update;spi_flash;mbedtls;micro-ecc;bootloader_support;nvs_flash;pthread;smartconfig_ack;wpa_supplicant;xtensa-debug-module;esp32;cxx;app_trace;jsmn;aws_iot;bootloader;bt;coap;console;nghttp;esp-tls;esp_adc_cal;esp_http_client;esp_https_ota;esptool_py;expat;wear_levelling;sdmmc;fatfs;idf_test;json;mdns;openssl;spiffs;ulp)
-
-set(EXTRA_COMPONENT_DIRS ${CMAKE_CURRENT_LIST_DIR}/components ${CMAKE_CURRENT_LIST_DIR}/main)
+set(EXCLUDE_COMPONENTS libsodium)
 
 # set the components local to our project
-set(PROJECT_COMPONENTS
-        arduino-esp32
-        ubirch-esp32-api-http
-        ubirch-esp32-console
-        ubirch-esp32-networking
-        ubirch-esp32-storage
-        ubirch-mbed-msgpack
-        ubirch-mbed-nacl-cm0
-        ubirch-protocol
-        )
-
+set(PROJECT_COMPONENTS ubirch-mbed-msgpack ubirch-mbed-nacl-cm0 ubirch-protocol)
 # go through the list of components and link or copy the CMakeLists.txt if necessary
 foreach (C_DIR ${PROJECT_COMPONENTS})
     if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/CMakeLists.txt")

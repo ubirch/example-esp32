@@ -74,19 +74,20 @@ bool load_keys(void) {
     ESP_LOGI(TAG, "read keys");
     esp_err_t err;
 
-    unsigned char *key;
+    unsigned char *key = ed25519_secret_key;
 
     // read the secret key
     size_t size_sk = sizeof(ed25519_secret_key);
     err = kv_load("key_storage", "secret_key", (void **) &key, &size_sk);
     if (memory_error_check(err)) return true;
-    memcpy(key, ed25519_secret_key, size_sk);
+//    memcpy(key, ed25519_secret_key, size_sk);
 
     // read the public key
+    key = ed25519_public_key;
     size_t size_pk = sizeof(ed25519_public_key);
     err = kv_load("key_storage", "public_key", (void **) &key, &size_pk);
     if (memory_error_check(err)) return true;
-    memcpy(key, ed25519_public_key, size_pk);
+//    memcpy(key, ed25519_public_key, size_pk);
 
     return false;
 }
@@ -110,6 +111,7 @@ bool store_keys(void) {
 
     return false;
 }
+
 
 bool get_public_key(char *key_buffer) {
     bool ret = false;
@@ -156,6 +158,7 @@ void register_keys(void) {
 
 void check_key_status(void) {
     //read the Keys, if available
+    ESP_LOGI(__func__, "");
     if (load_keys()) {
         create_keys();
         store_keys();

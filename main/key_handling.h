@@ -46,7 +46,7 @@ void create_keys(void);
  * @return true, if memory error,
  * @return false if no error
  */
-bool memory_error_check(esp_err_t err);
+esp_err_t memory_error_check(esp_err_t err);
 
 /*!
  * Read the Key values from memory

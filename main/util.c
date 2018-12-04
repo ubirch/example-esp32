@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <esp_log.h>
 #include <esp_system.h>
+#include <storage.h>
+#include <string.h>
 
 #include "util.h"
 
@@ -34,8 +36,10 @@ unsigned char UUID[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
 
 
 void set_hw_ID(void) {
+    ESP_LOGI(__func__, "");
     esp_efuse_mac_get_default(UUID);
     esp_base_mac_addr_set(UUID);
+    kv_store("device-status", "hw-dev-id", UUID, sizeof(UUID));
 }
 
 void get_hw_ID(void) {

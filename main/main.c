@@ -93,11 +93,7 @@ void main_task(void *pvParameters){
     EventBits_t event_bits;
 
     for(;;) {
-        event_bits = xEventGroupWaitBits(wifi_event_group,
-                                         READY_BIT,
-                                         false,
-                                         false,
-                                         portMAX_DELAY);
+        event_bits = xEventGroupWaitBits(wifi_event_group, READY_BIT, false, false, portMAX_DELAY);
         //
         if (event_bits & READY_BIT) {
             // let the LED blink
@@ -146,7 +142,6 @@ void enter_console(void *pvParameter){
         c = fgetc(stdin);
         if(c == 0x03) {  //0x03 = Ctrl + C
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
-            ESP_LOGI(TAG, "Starting Console");
             vTaskSuspend(main_task_handle);
             vTaskSuspend(net_config_handle);
             run_console();
@@ -176,7 +171,6 @@ esp_err_t init_system() {
 
     init_console();
     initialise_wifi();
-
 
     set_hw_ID();
     check_key_status();
@@ -216,6 +210,7 @@ void app_main() {
     xTaskCreate(&enter_console, "enter_console", 4096, NULL, 1, &console_handle );
 
     while (true) {
+        vTaskSuspend(NULL);
     }
 }
 

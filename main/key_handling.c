@@ -35,8 +35,7 @@
 
 #include "key_handling.h"
 
-static const char *TAG = "KEY_HANDLING";
-
+static const char *TAG = "KEYSTORE";
 
 extern unsigned char UUID[16];
 
@@ -79,14 +78,12 @@ bool load_keys(void) {
     size_t size_sk = sizeof(ed25519_secret_key);
     err = kv_load("key_storage", "secret_key", (void **) &key, &size_sk);
     if (memory_error_check(err)) return true;
-//    memcpy(key, ed25519_secret_key, size_sk);
 
     // read the public key
     key = ed25519_public_key;
     size_t size_pk = sizeof(ed25519_public_key);
     err = kv_load("key_storage", "public_key", (void **) &key, &size_pk);
     if (memory_error_check(err)) return true;
-//    memcpy(key, ed25519_public_key, size_pk);
 
     return false;
 }
@@ -111,56 +108,57 @@ bool store_keys(void) {
     return false;
 }
 
-
-bool get_public_key(char *key_buffer) {
-    bool ret = false;
-    for (int i = 0; i < UBIRCH_PROTOCOL_PUBKEY_SIZE; ++i) {
-        if (ed25519_public_key[0] == 0 && !ret) {
-            ret = false;
-        } else {
-            ret = true;
-        }
-        snprintf((key_buffer + (i * 2)), 3, "%02X", ed25519_public_key[i]);
-    }
-    key_buffer[64] = '\0';
-    return ret;
-}
-
 void register_keys(void) {
-    ESP_LOGI(TAG, "register keys");
-    // create buffer, protocol and packer
+    ESP_LOGI(TAG, "register identity");
+
     msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
-    ubirch_protocol *proto = ubirch_protocol_new(proto_signed, UBIRCH_PROTOCOL_TYPE_REG,
-                                                 sbuf, msgpack_sbuffer_write, ed25519_sign, UUID);
-    msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
-    // start the ubirch protocol message
-    ubirch_protocol_start(proto, pk);
-    // create key registration info
-    ubirch_key_info info = {};
-    info.algorithm = (char *) (UBIRCH_KEX_ALG_ECC_ED25519);
-    info.created = time(NULL);                                  // current time of the system
-    memcpy(info.hwDeviceId, UUID, sizeof(UUID));                // 16 Byte unique hardware device ID
-    memcpy(info.pubKey, ed25519_public_key, sizeof(ed25519_public_key));    // the public key
-    info.validNotAfter = time(NULL) + 31536000;                 // time until the key will be valid (now + 1 year)
-    info.validNotBefore = time(NULL);                           // time from when the key will be valid (now)
-    // pack the key registration msgpack
-    msgpack_pack_key_register(pk, &info);
-    // finish the ubirch protocol message
-    ubirch_protocol_finish(proto, pk);
+    // try to load the certificate if it was generated and stored before
+    esp_err_t err = kv_load("key_storage", "certificate", (void **) &sbuf->data, &sbuf->size);
+    if(err != ESP_OK) {
+        ESP_LOGW(TAG, "creating new certificate");
+        // create buffer, protocol and packer
+        ubirch_protocol *proto = ubirch_protocol_new(proto_signed, UBIRCH_PROTOCOL_TYPE_REG,
+                                                     sbuf, msgpack_sbuffer_write, ed25519_sign, UUID);
+        msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
+        // start the ubirch protocol message
+        ubirch_protocol_start(proto, pk);
+        // create key registration info
+        ubirch_key_info info = {};
+        info.algorithm = (char *) (UBIRCH_KEX_ALG_ECC_ED25519);
+        info.created = (unsigned int) time(NULL);                           // current time of the system
+        memcpy(info.hwDeviceId, UUID, sizeof(UUID));                        // 16 Byte unique hardware device ID
+        memcpy(info.pubKey, ed25519_public_key, sizeof(ed25519_public_key));// the public key
+        info.validNotAfter = (unsigned int) (time(NULL) + 31536000);        // time until the key will be valid (now + 1 year)
+        info.validNotBefore = (unsigned int) time(NULL);                    // time from when the key will be valid (now)
+        // pack the key registration msgpack
+        msgpack_pack_key_register(pk, &info);
+        // finish the ubirch protocol message
+        ubirch_protocol_finish(proto, pk);
+        // free allocated ressources
+        msgpack_packer_free(pk);
+        ubirch_protocol_free(proto);
+
+        // store the generated certificate
+        err = kv_store("key_storage", "certificate", sbuf->data, sbuf->size);
+        if(err != ESP_OK) {
+            ESP_LOGE(TAG, "unable to store certificate");
+        }
+    } else {
+        ESP_LOGI(TAG, "loaded certificate");
+    }
+
     // send the data
-    ubirch_send(CONFIG_UBIRCH_BACKEND_KEY_SERVER_URL, sbuf->data, sbuf->size, NULL);
-    // free allocated ressources
-    msgpack_packer_free(pk);
-    ubirch_protocol_free(proto);
+    err = ubirch_send(CONFIG_UBIRCH_BACKEND_KEY_SERVER_URL, sbuf->data, sbuf->size, NULL);
+    if(err != ESP_OK) {
+        ESP_LOGE(TAG, "unable to send registration");
+    }
     msgpack_sbuffer_free(sbuf);
+    ESP_LOGI(TAG, "successfull sent registration");
 }
 
 void check_key_status(void) {
-    //read the Keys, if available
-    ESP_LOGI(__func__, "");
     if (load_keys()) {
         create_keys();
         store_keys();
-//        register_keys();
     }
 }

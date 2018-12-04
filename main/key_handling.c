@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <esp_err.h>
-#include <nvs.h>
 #include <time.h>
 #include <esp_log.h>
 #include <storage.h>

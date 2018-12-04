@@ -204,6 +204,8 @@ void app_main() {
         } else { // no connection possible
             ESP_LOGW(TAG, "no valid Wifi");
         }
+        free(wifi.ssid);
+        free(wifi.pwd);
     }
     else {  // no WiFi connection
         ESP_LOGW(TAG, "no Wifi login data");

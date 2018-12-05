@@ -28,6 +28,8 @@
 #include <freertos/task.h>
 
 #include <ubirch_ota.h>
+#include <tcpip_adapter.h>
+#include <esp_log.h>
 #include "firmware_update.h"
 
 #pragma GCC diagnostic push
@@ -35,7 +37,16 @@
 
 void firmware_update_task(void *pvParameters) {
     for (;;) {
-        ubirch_firmware_update();
+        tcpip_adapter_ip_info_t ip;
+        if ((tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_ETH, &ip) == ESP_OK && ip.ip.addr != 0) ||
+            (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip) == ESP_OK && ip.ip.addr != 0)) {
+            ESP_LOGD(__func__, "network up: " IPSTR, IP2STR(&ip.ip));
+            // the network is up, polling firmware update
+            ubirch_firmware_update();
+        } else {
+            ESP_LOGE(__func__, "network not available, skipping firmware update");
+        }
+
         vTaskDelay(FIRMWARE_UPDATE_CHECK_INTERVAL);
     }
 }

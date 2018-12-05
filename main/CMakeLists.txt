@@ -1,6 +1,5 @@
 set(COMPONENT_SRCS
         main.c
-        firmware_update.c
         key_handling.c
         util.c
         temp_temp.c

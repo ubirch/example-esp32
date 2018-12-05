@@ -36,11 +36,11 @@
 #include <message.h>
 #include <ubirch_api.h>
 #include <nvs_flash.h>
+#include <ubirch_ota_task.h>
 
 #include "storage.h"
 #include "key_handling.h"
 #include "util.h"
-#include "firmware_update.h"
 
 #define BLUE_LED GPIO_NUM_2
 #define BOOT_BUTTON GPIO_NUM_0
@@ -218,7 +218,7 @@ void app_main() {
     xTaskCreate(&main_task, "hello_task", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&network_config_task, "network_config", 4096, NULL, 5, &net_config_handle);
     xTaskCreate(&enter_console, "enter_console", 4096, NULL, 5, &console_handle);
-    xTaskCreate(&firmware_update_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
+    xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
 
     vTaskSuspend(NULL);
 }

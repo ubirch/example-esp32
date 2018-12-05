@@ -1,5 +1,6 @@
 set(COMPONENT_SRCS
         main.c
+        sensor.c
         key_handling.c
         util.c
         temp_temp.c

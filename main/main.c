@@ -35,10 +35,12 @@
 #include <response.h>
 #include <message.h>
 #include <ubirch_api.h>
+#include <nvs_flash.h>
 
 #include "storage.h"
 #include "key_handling.h"
 #include "util.h"
+#include "firmware_update.h"
 
 #define BLUE_LED GPIO_NUM_2
 #define BOOT_BUTTON GPIO_NUM_0
@@ -49,6 +51,7 @@ char *TAG = "example-esp32";
 
 extern uint8_t temprature_sens_read();
 
+static TaskHandle_t fw_update_task_handle = NULL;
 static TaskHandle_t main_task_handle = NULL;
 static TaskHandle_t net_config_handle = NULL;
 static TaskHandle_t console_handle = NULL;
@@ -156,7 +159,17 @@ void enter_console(void *pvParameter) {
  */
 esp_err_t init_system() {
 
-    esp_err_t err = ESP_OK;
+    esp_err_t err;
+    err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
+        // OTA app partition table has a smaller NVS partition size than the non-OTA
+        // partition table. This size mismatch may cause NVS initialization to fail.
+        // If this happens, we erase NVS partition and initialize NVS again.
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
+
 
     // set the blue LED pin on the ESP32 DEVKIT V1 board
     gpio_set_direction(BLUE_LED, GPIO_MODE_OUTPUT);
@@ -205,6 +218,7 @@ void app_main() {
     xTaskCreate(&main_task, "hello_task", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&network_config_task, "network_config", 4096, NULL, 5, &net_config_handle);
     xTaskCreate(&enter_console, "enter_console", 4096, NULL, 1, &console_handle);
+    xTaskCreate(&firmware_update_task, "fw_update", 4096, NULL, 1, &fw_update_task_handle);
 
     vTaskSuspend(NULL);
 }

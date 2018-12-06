@@ -93,4 +93,6 @@ void sensor_setup() {
     ESP_LOGI(__func__, "Temp Sensor = %f", f_temperature);
 
     send_message(f_hall, f_temperature);
+
+    vTaskDelay(pdMS_TO_TICKS(30000));
 }

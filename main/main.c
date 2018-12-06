@@ -50,13 +50,6 @@ static TaskHandle_t console_handle = NULL;
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
 
 static void main_task(void *pvParameters) {
-    // get the current tick count to run the task periodic
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    uint32_t task_period_ms = 30000; //!< period for the task in ms, default value = 30 sec.
-    if (pvParameters != NULL) {
-        task_period_ms = *(uint32_t *) (pvParameters);
-    }
-
     bool keys_registered = false;
     EventBits_t event_bits;
     for (;;) {
@@ -69,8 +62,6 @@ static void main_task(void *pvParameters) {
                 keys_registered = true;
             }
             sensor_loop();
-
-            vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(task_period_ms));
         }
     }
 }
@@ -136,11 +127,6 @@ static esp_err_t init_system() {
     check_key_status();
 
     sensor_setup();
-
-    init_adc();
-
-    adc_task();
-
 
     return err;
 }

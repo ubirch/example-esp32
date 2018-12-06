@@ -3,8 +3,6 @@ set(COMPONENT_SRCS
         sensor.c
         key_handling.c
         util.c
-        temp_temp.c
-        ubirch-adc.c
         )
 
 set(COMPONENT_ADD_INCLUDEDIRS "${CMAKE_CURRENT_LIST_DIR}")

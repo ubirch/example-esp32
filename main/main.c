@@ -37,7 +37,6 @@
 #include "key_handling.h"
 #include "util.h"
 #include "sensor.h"
-#include "ubirch-adc.h"
 
 char *TAG = "example-esp32";
 

@@ -155,8 +155,6 @@ void app_main() {
     } else {  // no WiFi connection
         ESP_LOGW(TAG, "no Wifi login data");
     }
-    // force firmware update check after restart
-    ubirch_firmware_update();
 
     xTaskCreate(&main_task, "main", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 5, &net_config_handle);

@@ -37,6 +37,7 @@
 #include "key_handling.h"
 #include "util.h"
 #include "sensor.h"
+#include "ubirch-adc.h"
 
 char *TAG = "example-esp32";
 
@@ -135,6 +136,11 @@ static esp_err_t init_system() {
     check_key_status();
 
     sensor_setup();
+
+    init_adc();
+
+    adc_task();
+
 
     return err;
 }

@@ -4,6 +4,7 @@ set(COMPONENT_SRCS
         key_handling.c
         util.c
         temp_temp.c
+        ubirch-adc.c
         )
 
 set(COMPONENT_ADD_INCLUDEDIRS "${CMAKE_CURRENT_LIST_DIR}")

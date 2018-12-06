@@ -120,26 +120,6 @@ To see the console output, type:
 ``` $ make monitor```
 or use your prefered serial console.
 
-### settings.h
-
-To connect to your wifi, and also to be able to make a http request, create a file ```settings.h``` in the 
- ```/example-esp32/main/``` directory and include the service URLs as well as the wifi settings for your wifi.
-
-```c
-// UBIRCH MESSAGE SERVICE
-#define UHTTP_PORT 80
-#define UHTTP_HOST "unsafe.api.ubirch.demo.ubirch.com"
-#define UHTTP_URL "http://unsafe.api.ubirch.demo.ubirch.com/api/avatarService/v1/device/update/mpack"
-// UBIRCH KEY SERVICE
-#define UKEY_SERVICE_PORT 80
-#define UKEY_SERVICE_HOST "unsafe.key.demo.ubirch.com"
-#define UKEY_SERVICE_URL  "http://unsafe.key.demo.ubirch.com/api/keyService/v1/pubkey/mpack"
-
-#define EXAMPLE_WIFI_SSID "YOUR_WIFI_SSID"
-#define EXAMPLE_WIFI_PASS "YOUR_WIFI_PASSWORD"
-#define UBIRCH_AUTH "ubirch-dev::<YOURTOKEN>::<SIGNATURE>"
-```
-
 ## Register your device in the Backend
 
 To register your device ath the backend, follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html) 

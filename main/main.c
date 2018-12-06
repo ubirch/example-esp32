@@ -32,6 +32,7 @@
 #include <ubirch_console.h>
 #include <nvs_flash.h>
 #include <ubirch_ota_task.h>
+#include <ubirch_ota.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -154,6 +155,8 @@ void app_main() {
     } else {  // no WiFi connection
         ESP_LOGW(TAG, "no Wifi login data");
     }
+    // force firmware update check after restart
+    ubirch_firmware_update();
 
     xTaskCreate(&main_task, "main", 8192, NULL, 5, &main_task_handle);
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 5, &net_config_handle);

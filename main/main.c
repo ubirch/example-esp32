@@ -33,6 +33,7 @@
 #include <nvs_flash.h>
 #include <ubirch_ota_task.h>
 #include <ubirch_ota.h>
+#include <time.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -60,16 +61,21 @@ static void main_task(void *pvParameters) {
         if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
             // after the device is ready, first try a firmwate update
             if (!force_fw_update) {
-                sntp_update();
                 ubirch_firmware_update();
                 force_fw_update = true;
             }
             if (!keys_registered) {
-                // force time update before generating keys
-                sntp_update();
-                check_key_status();
-                register_keys();
-                keys_registered = true;
+                // check that we have current time before trying to generate/register keys
+                time_t now = 0;
+                struct tm timeinfo = {0};
+                time(&now);
+                localtime_r(&now, &timeinfo);
+                if(timeinfo.tm_year >= (2017 - 1900)) {
+                    // force time update before generating keys
+                    check_key_status();
+                    register_keys();
+                    keys_registered = true;
+                }
             }
             sensor_loop();
         }

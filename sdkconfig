@@ -73,9 +73,9 @@ CONFIG_ARDUINO_SELECTIVE_Wire=
 #
 # UBIRCH
 #
-CONFIG_FIRMWARE_UPGRADE_BASE_URL="https://ci.tools.ubirch.com/firmware"
+CONFIG_FIRMWARE_UPGRADE_BASE_URL="https://fw.prod.ubirch.com"
 CONFIG_FIRMWARE_FILE_OVERRIDE=
-CONFIG_FIRMWARE_UPGRADE_FILE="firmware.bin"
+CONFIG_FIRMWARE_UPGRADE_FILE="dev/firmware.bin"
 
 #
 # UBIRCH Application

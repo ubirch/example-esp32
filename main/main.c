@@ -51,13 +51,23 @@ static TaskHandle_t console_handle = NULL;
 
 static void main_task(void *pvParameters) {
     bool keys_registered = false;
+    bool force_fw_update = false;
     EventBits_t event_bits;
     for (;;) {
         event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
                                          false, false, portMAX_DELAY);
         //
         if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
+            // after the device is ready, first try a firmwate update
+            if (!force_fw_update) {
+                sntp_update();
+                ubirch_firmware_update();
+                force_fw_update = true;
+            }
             if (!keys_registered) {
+                // force time update before generating keys
+                sntp_update();
+                check_key_status();
                 register_keys();
                 keys_registered = true;
             }
@@ -87,9 +97,11 @@ static void enter_console(void *pvParameter) {
         if (c == 0x03) {  //0x03 = Ctrl + C
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
             vTaskSuspend(main_task_handle);
+            vTaskSuspend(fw_update_task_handle);
             vTaskSuspend(net_config_handle);
             run_console();
             vTaskResume(net_config_handle);
+            vTaskResume(fw_update_task_handle);
             vTaskResume(main_task_handle);
         }
     }
@@ -124,7 +136,6 @@ static esp_err_t init_system() {
     initialise_wifi();
 
     set_hw_ID();
-    check_key_status();
 
     sensor_setup();
 
@@ -132,6 +143,8 @@ static esp_err_t init_system() {
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-noreturn"
 void app_main() {
 
     esp_err_t err;
@@ -156,13 +169,14 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
-    xTaskCreate(&main_task, "main", 8192, NULL, 5, &main_task_handle);
-    xTaskCreate(&update_time_task, "sntp", 4096, NULL, 5, &net_config_handle);
-    xTaskCreate(&enter_console, "console", 4096, NULL, 5, &console_handle);
+    xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
     xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
+    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
+    xTaskCreate(&main_task, "main", 8192, NULL, 8, &main_task_handle);
 
-    vTaskSuspend(NULL);
+    while(1) vTaskSuspend(NULL);
 }
+#pragma GCC diagnostic pop
 
 
 

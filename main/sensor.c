@@ -38,7 +38,7 @@
 
 extern unsigned char UUID[16];
 
-TickType_t interval = CONFIG_UBIRCH_DEFAULT_INTERVAL;
+unsigned int interval = CONFIG_UBIRCH_DEFAULT_INTERVAL;
 
 /*!
  * This function handles responses from the backend, where we can set parameters.
@@ -94,5 +94,5 @@ void sensor_setup() {
 
     send_message(f_hall, f_temperature);
 
-    vTaskDelay(pdMS_TO_TICKS(30000));
+    vTaskDelay(pdMS_TO_TICKS(interval));
 }

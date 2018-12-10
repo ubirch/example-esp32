@@ -2,8 +2,10 @@
 
 # How To implement the ubirch protocol on the ESP32
 1. [Required packages](#required-packages)
+    1. [xtensa-toolchain](#xtensa-toolchain)
     1. [ESP32-IDF](#esp32-idf)
     1. [example project ESP32](#example-project-esp32)
+        1. [The submodules](#the-submodules)
     1. [ubirch-protocol](#ubirch-protocol)
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
@@ -17,8 +19,8 @@
 
 
 ## Required packages
- 
-The presented ubirch-protocol implementation on the ESP32 platform is 
+
+The presented ubirch-protocol implementation on the ESP32 platform is
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.
 
@@ -30,12 +32,23 @@ Use this path structure for the packages:
   …
   - /PROJECT-DIR
                 /example-esp32
-                /example-esp32/ubirch-protocol
-                /example-esp32/ubirch-mbed-msgpack
-                /example-esp32/ubirch-mbed-nacl-cm0
+                /example-esp32/components/ubirch-protocol
+                /example-esp32/components/ubirch-mbed-msgpack
+                /example-esp32/components/ubirch-mbed-nacl-cm0
                 /example-eps32/components/arduino-esp32
+                /example-eps32/components/ubirch-esp32-api-http
+                /example-eps32/components/ubirch-esp32-console
+                /example-eps32/components/ubirch-esp32-networking
+                /example-eps32/components/ubirch-esp32-ota
+                /example-eps32/components/ubirch-esp32-storage
   …
 ```
+
+### xtensa toolchain
+
+The xtensa toolchain provides the necessary compiler to build the firmware and applcation for the ESP32.
+Follow the [linux-guide](https://dl.espressif.com/doc/esp-idf/latest/get-started/linux-setup.html)
+to install the toolchain on your linux machine.
 
 ### ESP32-IDF
 
@@ -44,7 +57,7 @@ Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com
 has to be downloaded and set up.
 
 ```[bash]
-$ git clone https://github.com/espressif/esp-idf.git
+git clone https://github.com/espressif/esp-idf.git
 ```
 
 Use the [guide](https://docs.espressif.com/projects/esp-idf/en/latest/) to install and configure
@@ -56,46 +69,59 @@ The example project [example-esp32](https://github.com/ubirch/example-esp32) can
 an application on the ESP32, which uses the ubirch-protocol.
 
 ```bash
-$ git clone https://github.com/ubirch/example-esp32.git
+git clone --recursive https://github.com/ubirch/example-esp32.git
 ```
 
-Afterwards get the submodules with the commands
+> If you have already colned the example, but do not have the submodules yet,
+you can get the submodules with the following commands:
 
 ```bash
 cd example-esp && \
 git submodule update --init --recursive
 ```
-> Clone the following libraries within `example-esp32`
 
-### ubirch-protocol
-
-Get the [ubirch-protocol](https://github.com/ubirch/ubirch-protocol) 
-
+Now the structure on your machine should look like this:
 ```bash
-$ git clone https://github.com/ubirch/ubirch-protocol.git
+
+|-- ESP-IDF
+|..
+|-- xtensa-toolchain
+|..
+|-- example-esp
+    |-- components
+        |-- arduino-esp
+        |-- ubirch-esp32-api-http
+        |-- ubirch-esp32-console
+        |-- ubirch-esp32-networking
+        |-- ubirch-esp32-ota
+        |-- ubirch-esp32-storage
+        |-- ubirch-mbed-msgpack
+        |-- ubirch-mbed-nacl-cm0
+        |-- ubirch-protocol
+    |..
 ```
 
-### ubirch-mbed-msgpack
+#### The submodules
 
-Get the [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
+For the documentation of the herein used submodules, go to the repositories, or the README.md files inside the modules.
 
-```bash
-$ git clone https://github.com/ubirch/ubirch-mbed-msgpack.git
-```
+This list provides the links to the submodule repositories:
 
-### ubirch-mbed-nacl-cm0
-
-Get the [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
-
-```bash
-$ git clone https://github.com/ubirch/ubirch-mbed-nacl-cm0.git
-```
+- [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
+- [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
+- [ubirch-protocol](https://github.com/ubirch/ubirch-protocol.git)
+- [arduino-esp32](https://github.com/ubirch/arduino-esp32)
+- [ubirch-esp32-networking](https://github.com/ubirch/ubirch-esp32-networking)
+- [ubirch-esp32-console](https://github.com/ubirch/ubirch-esp32-console)
+- [ubirch-esp32-storage](https://github.com/ubirch/ubirch-esp32-storage)
+- [ubirch-esp32-api-http](https://github.com/ubirch/ubirch-esp32-api-http)
+- [ubirch-esp32-ota](https://github.com/ubirch/ubirch-esp32-ota)
 
 ## Build your application
 
 To build an application, a cmake installation is required, which
-connects the application to the IDF and allows to build the complete firmware and also to use the IDF 
-make commands. 
+connects the application to the IDF and allows to build the complete firmware and also to use the IDF
+make commands.
 
 To prepare your workspace, use the following commands:
 
@@ -106,7 +132,7 @@ $ cmake ..
 ```
 
 To build the application type:
-``` $ make all``` 
+``` $ make all```
 or
 ``` $ make app```
 
@@ -116,24 +142,60 @@ To cleanup the build directory type:
 To flash the device, type:
 ``` $ make app-flash```
 
-To see the console output, type: 
+To see the console output, type:
 ``` $ make monitor```
 or use your prefered serial console.
 
+## Serial Interface
+
+The Serial interface for the ESP32 is managed via a a specific interaface chip on your ESP32 board,
+according to the [Establish Serial Connection with ESP32 guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/establish-serial-connection.html#establish-serial-connection-with-esp32)
+
+### Tools for Serial Connection
+
+- `make monitor` is the build in monitor, which does not always work.
+- `miniterm.py` is a tool from the [pyserial](https://github.com/pyserial/pyserial) package.
+    -  to use miniterm.py, open your prefered terminal and enter: `miniterm.py /dev/ttyUSB0 115200 --raw`
+        - where `/dev/ttyUSB0` is the COM port and `115200` is the baudrate. Both might have to be adjusted. the `--raw` give you the raw output, without the special control characters.
+
+
+### Console
+
+The console is a [submodule](components/ubirch-esp32-console) of the example,
+which provides a way to locally communicate with the device, via serial interface.
+Check the [README](components/ubirch-esp32-console/README.md) for more details.
+
+#### Enter Console mode
+
+To enter the console mode, press `Ctrl + c` on your keyboard, while you are in a terminal connected to the device.
+
+
+### Erase the device memory
+
+To erase the complete chip memory, go to the directory
+`esp-idf/components/esptool_py/esptool` and use the command
+
+```bash
+./esptool.py erase_flash
+```
+
+> If you erased the complete chip memory, the whole firmware, including
+the bootloader has to be flashed onto the chip, otherwise the esp32
+device cannot run. properly.
+
 ## Register your device in the Backend
 
-To register your device ath the backend, follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html) 
-Therefore the hardware device UUID of the device is needed, which is printed out on the cerial console, 
-when the device is reseted, see below:
+To register your device ath the backend, follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html)
+Therefore the hardware device ID of the device is needed, which is printed out on the [console](#console) with the command `status`.
+
+The corresponding output may look like this:
 
 ```[bash]
-...
-hello this is Ubirch protocol on ESP32 wifi example 
-
-I (209) UUID: FFFFFFFF-FFFF-1223-3445-566778899AAB
-
-I (212) wifi: wifi driver task:.......
-...
+UBIRCH device status:
+Hardware-Device-ID: XXXXXXXX-XXXX-1223-3445-566778899AAB
+Public key: 89088729D730C1DBE9E3392B85ABF562EBC51580A5DAC7B819DC7D368EE3CCF4
+Wifi SSID : YOUR-WIFI-SSID
+Current time: 10.12.2018 14:29:49
 ```
 Copy the UUID and register the device.
 

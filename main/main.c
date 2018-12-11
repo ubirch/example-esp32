@@ -100,7 +100,8 @@ static void enter_console(void *pvParameter) {
     char c;
     for (;;) {
         c = (char) fgetc(stdin);
-        if (c == 0x03) {  //0x03 = Ctrl + C
+        printf("%02x\r", c);
+        if ((c == 0x03) || (c == 0x15) || (c == 0x1A)) {  //0x03 = Ctrl + C      0x15 = Ctrl + U
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
             vTaskSuspend(main_task_handle);
             vTaskSuspend(fw_update_task_handle);
@@ -154,6 +155,7 @@ static esp_err_t init_system() {
 void app_main() {
 
     esp_err_t err;
+
     init_system();
 
     ESP_LOGI(TAG, "connecting to wifi");

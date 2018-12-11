@@ -35,34 +35,25 @@ extern "C" {
 
 
 /*!
- * Create a new signature Key pair
+ * Create a new signature Key pair.
+ *
+ * After creating the key pair, it is packad into msgpack together with aditional
+ * information, according to the structure `ubirch_key_info()`, from `ubirch_protocol_kex.h`,
+ * which is part of the `ubirch-protocol` module.
  */
 void create_keys(void);
 
 /*!
- * Read the Key values from memory
- *
- * @return true, if something went wrong,
- * @return false if keys are available
- */
-bool load_keys(void);
-
-/*!
- * Write the key values to the memory
- *
- * @return true, if something went wrong,
- * @return false if keys were successfully stored
- */
-bool store_keys(void);
-
-/*!
  * Register the Keys in the backend.
+ *
+ * This function can only be executed, if a network connection is available.
  */
 void register_keys(void);
 
 /*!
  * Check the current key status.
- * If no keys are present, create new keys and register them at the backend
+ *
+ * If no keys are present, create new keys. The key registration has to be executed separately.
  */
 void check_key_status(void);
 

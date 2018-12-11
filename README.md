@@ -153,7 +153,7 @@ according to the [Establish Serial Connection with ESP32 guide](https://docs.esp
 
 ### Tools for Serial Connection
 
-- `make monitor` is the build in monitor, which does not always work.
+- `/esp-idf/tools/idf_monitor.py --port /dev/ttyUSB0 cmake-build-debug/example-esp32.elf`
 - `miniterm.py` is a tool from the [pyserial](https://github.com/pyserial/pyserial) package.
     -  to use miniterm.py, open your prefered terminal and enter: `miniterm.py /dev/ttyUSB0 115200 --raw`
         - where `/dev/ttyUSB0` is the COM port and `115200` is the baudrate. Both might have to be adjusted. the `--raw` give you the raw output, without the special control characters.

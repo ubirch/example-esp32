@@ -25,3 +25,6 @@
 [submodule "components/ubirch-esp32-ota"]
 	path = components/ubirch-esp32-ota
 	url = https://github.com/ubirch/ubirch-esp32-ota
+[submodule "components/ubirch-esp32-key-storage"]
+	path = components/ubirch-esp32-key-storage
+	url = https://github.com/ubirch/ubirch-esp32-key-storage.git

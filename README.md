@@ -24,25 +24,6 @@ The presented ubirch-protocol implementation on the ESP32 platform is
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.
 
-Use this path structure for the packages:
-```[bash]
-  …
-  - /ESP-IDF-DIR
-                /ESP32-IDF
-  …
-  - /PROJECT-DIR
-                /example-esp32
-                /example-esp32/components/ubirch-protocol
-                /example-esp32/components/ubirch-mbed-msgpack
-                /example-esp32/components/ubirch-mbed-nacl-cm0
-                /example-eps32/components/arduino-esp32
-                /example-eps32/components/ubirch-esp32-api-http
-                /example-eps32/components/ubirch-esp32-console
-                /example-eps32/components/ubirch-esp32-networking
-                /example-eps32/components/ubirch-esp32-ota
-                /example-eps32/components/ubirch-esp32-storage
-  …
-```
 
 ### xtensa toolchain
 
@@ -72,7 +53,7 @@ an application on the ESP32, which uses the ubirch-protocol.
 git clone --recursive https://github.com/ubirch/example-esp32.git
 ```
 
-> If you have already colned the example, but do not have the submodules yet,
+> If you have already cloned the example, but do not have the submodules yet,
 you can get the submodules with the following commands:
 
 ```bash
@@ -88,17 +69,17 @@ Now the structure on your machine should look like this:
 |-- xtensa-toolchain
 |..
 |-- example-esp
-    |-- components
-        |-- arduino-esp
-        |-- ubirch-esp32-api-http
-        |-- ubirch-esp32-console
-        |-- ubirch-esp32-networking
-        |-- ubirch-esp32-ota
-        |-- ubirch-esp32-storage
-        |-- ubirch-mbed-msgpack
-        |-- ubirch-mbed-nacl-cm0
-        |-- ubirch-protocol
-    |..
+        |-- components
+                |-- arduino-esp
+                |-- ubirch-esp32-api-http
+                |-- ubirch-esp32-console
+                |-- ubirch-esp32-networking
+                |-- ubirch-esp32-ota
+                |-- ubirch-esp32-storage
+                |-- ubirch-mbed-msgpack
+                |-- ubirch-mbed-nacl-cm0
+                |-- ubirch-protocol
+        |..
 ```
 
 #### The submodules

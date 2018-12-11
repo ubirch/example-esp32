@@ -1,7 +1,6 @@
 set(COMPONENT_SRCS
         main.c
         sensor.c
-        key_handling.c
         util.c
         )
 
@@ -17,7 +16,9 @@ set(COMPONENT_REQUIRES
         ubirch-mbed-msgpack
         ubirch-mbed-nacl-cm0
         ubirch-protocol
+        ubirch-esp32-key-storage
         nvs_flash
+
         )
 
 register_component()

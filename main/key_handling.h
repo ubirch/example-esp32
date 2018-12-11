@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 
-/*!
+/*!  
  * Create a new signature Key pair.
  *
  * After creating the key pair, it is packad into msgpack together with aditional

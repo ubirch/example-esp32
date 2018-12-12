@@ -25,3 +25,10 @@
 [submodule "components/ubirch-esp32-ota"]
 	path = components/ubirch-esp32-ota
 	url = https://github.com/ubirch/ubirch-esp32-ota
+[submodule "components/esp32-i2c-ssd1306-oled"]
+	path = components/esp32-i2c-ssd1306-oled
+	url = https://github.com/ubirch/esp32-i2c-ssd1306-oled.git
+	branch = pure-c
+[submodule "components/ubirch-esp32-key-storage"]
+	path = components/ubirch-esp32-key-storage
+	url = https://github.com/ubirch/ubirch-esp32-key-storage.git

@@ -1,8 +1,8 @@
 set(COMPONENT_SRCS
         main.c
         sensor.c
-        key_handling.c
         util.c
+        oled.c
         )
 
 set(COMPONENT_ADD_INCLUDEDIRS "${CMAKE_CURRENT_LIST_DIR}")
@@ -18,6 +18,8 @@ set(COMPONENT_REQUIRES
         ubirch-mbed-nacl-cm0
         ubirch-protocol
         nvs_flash
+        esp32-i2c-ssd1306-oled
+        ubirch-esp32-key-storage
         )
 
 register_component()

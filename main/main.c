@@ -38,6 +38,7 @@
 #include "key_handling.h"
 #include "util.h"
 #include "sensor.h"
+#include "oled.h"
 
 char *TAG = "example-esp32";
 
@@ -62,6 +63,7 @@ static void main_task(void *pvParameters) {
                 keys_registered = true;
             }
             sensor_loop();
+            oled_show();
         }
     }
 }

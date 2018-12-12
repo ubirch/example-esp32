@@ -18,7 +18,6 @@ set(COMPONENT_REQUIRES
         ubirch-protocol
         ubirch-esp32-key-storage
         nvs_flash
-
         )
 
 register_component()

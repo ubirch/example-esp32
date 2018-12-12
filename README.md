@@ -123,10 +123,6 @@ To cleanup the build directory type:
 To flash the device, type:
 ``` $ make app-flash```
 
-To see the console output, type:
-``` $ make monitor```
-or use your prefered serial console.
-
 ## Serial Interface
 
 The Serial interface for the ESP32 is managed via a a specific interaface chip on your ESP32 board,
@@ -134,7 +130,7 @@ according to the [Establish Serial Connection with ESP32 guide](https://docs.esp
 
 ### Tools for Serial Connection
 
-- `/esp-idf/tools/idf_monitor.py --port /dev/ttyUSB0 cmake-build-debug/example-esp32.elf`
+- `$IDF_PATH/tools/idf.py monitor`
 - `miniterm.py` is a tool from the [pyserial](https://github.com/pyserial/pyserial) package.
     -  to use miniterm.py, open your prefered terminal and enter: `miniterm.py /dev/ttyUSB0 115200 --raw`
         - where `/dev/ttyUSB0` is the COM port and `115200` is the baudrate. Both might have to be adjusted. the `--raw` give you the raw output, without the special control characters.
@@ -157,7 +153,7 @@ To erase the complete chip memory, go to the directory
 `esp-idf/components/esptool_py/esptool` and use the command
 
 ```bash
-./esptool.py erase_flash
+$IDF_PATH/components/esptool_py/esptool/esptool.py erase_flash
 ```
 
 > If you erased the complete chip memory, the whole firmware, including

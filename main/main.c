@@ -158,6 +158,8 @@ void app_main() {
 
     init_system();
 
+    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
+
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
@@ -179,7 +181,6 @@ void app_main() {
 
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
     xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
-    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
     xTaskCreate(&main_task, "main", 8192, NULL, 8, &main_task_handle);
 
     while(1) vTaskSuspend(NULL);

@@ -86,7 +86,8 @@ static void enter_console(void *pvParameter) {
     char c;
     for (;;) {
         c = (char) fgetc(stdin);
-        if (c == 0x03) {  //0x03 = Ctrl + C
+        printf(">>> %02x\r",c);
+        if (c == 0x03 || c == 0x15 ) {  //0x03 = Ctrl + C
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
             vTaskSuspend(main_task_handle);
             vTaskSuspend(net_config_handle);

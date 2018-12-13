@@ -10,13 +10,11 @@
     1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
     1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
 1. [Build your application](#build-your-application)
-    1. [settings.h](#settingsh)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
 1. [Basic functionality of the example](#basic-functionality-of-the-example)
     1. [Key registration](#key-registration)
     1. [Message creation](#message-creation)
     1. [Message response evaluation](#message-response-evaluation)
-
 
 ## Required packages
 

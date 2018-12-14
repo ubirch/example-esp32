@@ -70,7 +70,7 @@ static void main_task(void *pvParameters) {
                 struct tm timeinfo = {0};
                 time(&now);
                 localtime_r(&now, &timeinfo);
-                if(timeinfo.tm_year >= (2017 - 1900)) {
+                if (timeinfo.tm_year >= (2017 - 1900)) {
                     // force time update before generating keys
                     check_key_status();
                     register_keys();
@@ -103,13 +103,13 @@ static void enter_console(void *pvParameter) {
         printf("%02x\r", c);
         if ((c == 0x03) || (c == 0x15) || (c == 0x1A)) {  //0x03 = Ctrl + C      0x15 = Ctrl + U
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
-            vTaskSuspend(main_task_handle);
-            vTaskSuspend(fw_update_task_handle);
-            vTaskSuspend(net_config_handle);
+            if (main_task_handle) vTaskSuspend(main_task_handle);
+            if (fw_update_task_handle) vTaskSuspend(fw_update_task_handle);
+            if (net_config_handle) vTaskSuspend(net_config_handle);
             run_console();
-            vTaskResume(net_config_handle);
-            vTaskResume(fw_update_task_handle);
-            vTaskResume(main_task_handle);
+            if (fw_update_task_handle) vTaskResume(net_config_handle);
+            if (net_config_handle) vTaskResume(fw_update_task_handle);
+            if (main_task_handle) vTaskResume(main_task_handle);
         }
     }
 }
@@ -152,13 +152,12 @@ static esp_err_t init_system() {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
+
 void app_main() {
 
     esp_err_t err;
 
     init_system();
-
-    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
 
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
@@ -179,12 +178,14 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
+    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
     xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
     xTaskCreate(&main_task, "main", 8192, NULL, 8, &main_task_handle);
 
-    while(1) vTaskSuspend(NULL);
+    while (1) vTaskSuspend(NULL);
 }
+
 #pragma GCC diagnostic pop
 
 

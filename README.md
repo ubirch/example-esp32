@@ -147,7 +147,7 @@ Check the [README](components/ubirch-esp32-console/README.md) for more details.
 
 #### Enter Console mode
 
-To enter the console mode, press `Ctrl + c` on your keyboard, while you are in a terminal connected to the device.
+To enter the console mode, press `Ctrl + c` or `Ctrl + u` on your keyboard, while you are in a terminal connected to the device.
 
 
 ### Erase the device memory
@@ -181,15 +181,37 @@ Copy the UUID and register the device.
 
 ## Basic functionality of the example
 
-- generate keys, see [create_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L40)
-- store keys, see [store_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L64)
-- register keys at the backend, see [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L89)
+- at startup, the system is initialized, see [init_system()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L138-L164)
+- try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L181-L199)
+- create the following tasks, which are afterwards handled by the system:
+    - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L114-L130),
+    allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](components/ubirch-esp32-console/README.md)
+    - [**update_time_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L97-L108),
+    updates the time via sntp
+    - [**ubirch_ota_task**](https://github.com/ubirch/ubirch-esp32-ota/blob/master/ubirch_ota_task.c#L38-L56),
+    checks if firmware updates are availabe and performs the updates. For more details, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-ota) and the [README](components/ubirch-esp32-ota/README.md)
+    - [**main_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L60-L90),
+    performs the main functionality of the application.
+    To extend this example to your specific application, you can apply your code [here(https://github.com/ubirch/example-esp32/blob/master/main/main.c#L90)
+
+## Ubirch specific functionality
+
+- generate keys, see [create_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L44)
+- register keys at the backend, see [register_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L51)
 - store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L84)
 - store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L49-L54))
 - create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L80)
 - make a http post request, see [http_post_task()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L49)
 - evaluate the message response, see [check_response()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
 - react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
+
+
+
+
+
+
+
+
 
 
 ### Key registration

@@ -42,6 +42,7 @@
 
 char *TAG = "example-esp32";
 
+// define task handles for every task
 static TaskHandle_t fw_update_task_handle = NULL;
 static TaskHandle_t main_task_handle = NULL;
 static TaskHandle_t net_config_handle = NULL;
@@ -50,6 +51,12 @@ static TaskHandle_t console_handle = NULL;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
 
+/*!
+ * Main task performs the main functionality of the application,
+ * when the network is set up.
+ *
+ * @param pvParameters are currently not used, but part of the task declaration.
+ */
 static void main_task(void *pvParameters) {
     bool keys_registered = false;
     bool force_fw_update = false;
@@ -77,12 +84,19 @@ static void main_task(void *pvParameters) {
                     keys_registered = true;
                 }
             }
+            //
+            // APPLY  YOUR APPLICATION SPECIFIC CODE HERE
+            //
             sensor_loop();
         }
     }
 }
 
-
+/*!
+ * Update the system time every 6 hours.
+ *
+ * @param pvParameters are currently not used, but part of the task declaration.
+ */
 static void update_time_task(void __unused *pvParameter) {
     EventBits_t event_bits;
 
@@ -92,16 +106,20 @@ static void update_time_task(void __unused *pvParameter) {
         if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
             sntp_update();
         }
-        vTaskDelay(18000000);
+        vTaskDelay(21600000);  // delay this task for the next 6 hours
     }
 }
 
-static void enter_console(void *pvParameter) {
+/*!
+ *
+ * @param pvParameters are currently not used, but part of the task declaration.
+ */
+static void enter_console_task(void *pvParameter) {
     char c;
     for (;;) {
         c = (char) fgetc(stdin);
         printf("%02x\r", c);
-        if ((c == 0x03) || (c == 0x15) || (c == 0x1A)) {  //0x03 = Ctrl + C      0x15 = Ctrl + U
+        if ((c == 0x03) || (c == 0x15)) {  //0x03 = Ctrl + C      0x15 = Ctrl + U
             // If Ctrl + C was pressed, enter the console and suspend the other tasks until console exits.
             vTaskSuspend(main_task_handle);
             vTaskSuspend(fw_update_task_handle);
@@ -140,7 +158,7 @@ static esp_err_t init_system() {
 #endif
 
     init_console();
-    initialise_wifi();
+    init_wifi();
 
     set_hw_ID();
 
@@ -152,14 +170,18 @@ static esp_err_t init_system() {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
+/*!
+ * Application main function.
+ * This function represents the main() functionality of other systems.
+ */
 void app_main() {
 
     esp_err_t err;
 
+    // initialize the system
     init_system();
 
-    xTaskCreate(&enter_console, "console", 4096, NULL, 7, &console_handle);
-
+    // connect to the wifi, if a valid wifi configuration is stored
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
@@ -179,9 +201,13 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
+    // create the system tasks to be executed
+    xTaskCreate(&enter_console_task, "console", 4096, NULL, 7, &console_handle);
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
     xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
-    xTaskCreate(&main_task, "main", 8192, NULL, 8, &main_task_handle);
+    xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
+
+    ESP_LOGI(TAG, "all tasks created");
 
     while(1) vTaskSuspend(NULL);
 }

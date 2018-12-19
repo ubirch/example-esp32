@@ -1,20 +1,22 @@
 [![ubirch GmbH](files/cropped-uBirch_Logo.png)](https://ubirch.de)
 
 # How To implement the ubirch protocol on the ESP32
+
 1. [Required packages](#required-packages)
-    1. [xtensa-toolchain](#xtensa-toolchain)
+    1. [xtensa toolchain](#xtensa-toolchain)
     1. [ESP32-IDF](#esp32-idf)
     1. [example project ESP32](#example-project-esp32)
         1. [The submodules](#the-submodules)
-    1. [ubirch-protocol](#ubirch-protocol)
-    1. [ubirch-mbed-msgpack](#ubirch-mbed-msgpack)
-    1. [ubirch-mbed-nacl-cm0](#ubirch-mbed-nacl-cm0)
+1. [Configuration](#configuration)
 1. [Build your application](#build-your-application)
+1. [Serial Interface](#serial-interface)
+    1. [Tools for Serial Connection](#tools-for-serial-connection)
+    1. [Console](#console)
+        1. [Enter Console mode](#enter-console-mode)
+    1. [Erase the device memory](#erase-the-device-memory)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
-1. [Basic functionality of the example](#basic-functionality-of-the-example)
-    1. [Key registration](#key-registration)
-    1. [Message creation](#message-creation)
-    1. [Message response evaluation](#message-response-evaluation)
+1. [Basic functionality of the example](#aasic-functionality-of-the-example)
+1. [Ubirch specific functionality](#ubirch-specific-functionality)
 
 ## Required packages
 
@@ -96,6 +98,16 @@ This list provides the links to the submodule repositories:
 - [ubirch-esp32-api-http](https://github.com/ubirch/ubirch-esp32-api-http)
 - [ubirch-esp32-ota](https://github.com/ubirch/ubirch-esp32-ota)
 
+## Configuration
+
+The URLs for the data, keys and fimrware updates can be configured by running:
+```bash
+make menuconfig
+```
+Got to the Category `UBIRCH` to setup the URL for the firmware update
+and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
+the key server URL and to adjust the measuring interval.
+
 ## Build your application
 
 To build an application, a cmake installation is required, which
@@ -138,7 +150,6 @@ according to the [Establish Serial Connection with ESP32 guide](https://docs.esp
     -  to use miniterm.py, open your prefered terminal and enter: `miniterm.py /dev/ttyUSB0 115200 --raw`
         - where `/dev/ttyUSB0` is the COM port and `115200` is the baudrate. Both might have to be adjusted. the `--raw` give you the raw output, without the special control characters.
 
-
 ### Console
 
 The console is a [submodule](components/ubirch-esp32-console) of the example,
@@ -147,7 +158,7 @@ Check the [README](components/ubirch-esp32-console/README.md) for more details.
 
 #### Enter Console mode
 
-To enter the console mode, press `Ctrl + c` on your keyboard, while you are in a terminal connected to the device.
+To enter the console mode, press `Ctrl + c` or `Ctrl + u` on your keyboard, while you are in a terminal connected to the device.
 
 
 ### Erase the device memory
@@ -181,9 +192,23 @@ Copy the UUID and register the device.
 
 ## Basic functionality of the example
 
-- generate keys, see [create_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L40)
-- store keys, see [store_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L64)
-- register keys at the backend, see [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L89)
+- at startup, the system is initialized, see [init_system()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L138-L164)
+- try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L181-L199)
+- create the following tasks, which are afterwards handled by the system:
+    - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L114-L130),
+    allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](components/ubirch-esp32-console/README.md)
+    - [**update_time_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L97-L108),
+    updates the time via sntp
+    - [**ubirch_ota_task**](https://github.com/ubirch/ubirch-esp32-ota/blob/master/ubirch_ota_task.c#L38-L56),
+    checks if firmware updates are availabe and performs the updates. For more details, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-ota) and the [README](components/ubirch-esp32-ota/README.md)
+    - [**main_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L60-L90),
+    performs the main functionality of the application.
+    To extend this example to your specific application, you can apply your code [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L90)
+
+## Ubirch specific functionality
+
+- generate keys, see [create_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L44)
+- register keys at the backend, see [register_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L51)
 - store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L84)
 - store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L49-L54))
 - create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L80)
@@ -192,189 +217,3 @@ Copy the UUID and register the device.
 - react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
 
 
-### Key registration
-The public key of the ESP32 aplication has to be provided to the backend. 
-
-The example already includes the functionality in [register_keys()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L215-L242)
-
-```C
-// create buffer, protocol and packer
-msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
-ubirch_protocol *proto = ubirch_protocol_new(proto_signed, UBIRCH_PROTOCOL_TYPE_REG,
-                                             sbuf, msgpack_sbuffer_write, ed25519_sign, UUID);
-msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
-// start the ubirch protocol message
-ubirch_protocol_start(proto, pk);
-// create key registration info
-ubirch_key_info info = {};                              
-info.algorithm = (char *)(UBIRCH_KEX_ALG_ECC_ED25519);  
-info.created = time(NULL);                                  // current time of the system
-memcpy(info.hwDeviceId, UUID, sizeof(UUID));                // 16 Byte unique hardware device ID
-memcpy(info.pubKey, ed25519_public_key, sizeof(ed25519_public_key));    // the public key
-info.validNotAfter = time(NULL) + 31536000;                 // time until the key will be valid (now + 1 year)
-info.validNotBefore = time(NULL);                           // time from when the key will be valid (now)
-// pack the key registration msgpack
-msgpack_pack_key_register(pk, &info);
-// finish the ubirch protocol message
-ubirch_protocol_finish(proto, pk);
-// send the data
-http_post_task(UKEY_SERVICE_URL, sbuf->data, sbuf->size);
-// free allocated ressources
-msgpack_packer_free(pk);
-ubirch_protocol_free(proto);
-msgpack_sbuffer_free(sbuf);
-```
-
-### Message creation
-
-After the public key is registered in the backend, messages for sensor values can be created and transmitted, 
-like in the example from [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L266-L309)
-
-```C
-// create buffer, writer, ubirch protocol context and packer
-msgpack_sbuffer *sbuf = msgpack_sbuffer_new();
-ubirch_protocol *proto = ubirch_protocol_new(proto_chained, MSGPACK_MSG_UBIRCH,
-                                             sbuf, msgpack_sbuffer_write, esp32_ed25519_sign, UUID);
-msgpack_packer *pk = msgpack_packer_new(proto, ubirch_protocol_write);
-// load the old signature and copy it to the protocol
-unsigned char old_signature[UBIRCH_PROTOCOL_SIGN_SIZE] = {};
-if (load_signature(old_signature)) {
-    ESP_LOGW(TAG, "error loading the old signature");
-}
-memcpy(proto->signature, old_signature, UBIRCH_PROTOCOL_SIGN_SIZE);
-// start the protocol
-ubirch_protocol_start(proto, pk);
-//
-// PAYLOAD SECTION
-// add or modify the data here
-//
-// create array[ timestamp, value ])
-msgpack_pack_array(pk, 1);
-uint64_t ts = get_time_us();
-msgpack_pack_uint64(pk, ts);
-uint32_t fake_temp = (esp_random() & 0x0F);
-msgpack_pack_int32(pk, (int32_t) (fake_temp));
-//
-// END OF PAYLOAD
-//
-// finish the protocol
-ubirch_protocol_finish(proto, pk);
-if (store_signature(proto->signature, UBIRCH_PROTOCOL_SIGN_SIZE)) {
-    ESP_LOGW(TAG, "error storing the signature");
-}
-// send the message
-http_post_task(UHTTP_URL, (const char *) (sbuf->data), sbuf->size);
-
-// free allocated ressources
-msgpack_packer_free(pk);
-ubirch_protocol_free(proto);
-msgpack_sbuffer_free(sbuf);
-```
- 
-## Message response evaluation
-
-The message response evaluation is performed in several steps, by several functions. 
-The details are discribed below in consecutive steps.
- 
-- the unpacker is a global array pointer, where the data is stored, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L63)
-```c
-msgpack_unpacker *unpacker = NULL;
-```
-- generate a new unpacker at the beginning of every transmission, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L117)
-```c
-unpacker = msgpack_unpacker_new(rcv_buffer_size);
-```
-- store the incoming receive message data into the buffer, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L97-L101)
-```c
-// write the data to the unpacker    
-if (msgpack_unpacker_buffer_capacity(unpacker) < evt->data_len) {
-    msgpack_unpacker_reserve_buffer(unpacker, evt->data_len);
-}
-memcpy(msgpack_unpacker_buffer(unpacker), evt->data, evt->data_len);
-msgpack_unpacker_buffer_consumed(unpacker, evt->data_len);
-```
-- if the http post was successful -> status < 300, verify the response, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L151-L156)
-```c
-if (!ubirch_protocol_verify(unpacker, esp32_ed25519_verify)) {
-    ESP_LOGI(TAG, "check successful");
-    parse_payload(unpacker);
-} else { // verification failed }
-```
-- if the verification was successful, parse the payload, , see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L162-L201)
-```c
-// new unpacked result buffer
-msgpack_unpacked result;
-msgpack_unpacked_init(&result);
-// unpack into result buffer and look for ARRAY
-if (msgpack_unpacker_next(unpacker, &result) && result.data.type == MSGPACK_OBJECT_ARRAY) {
-    // redirect the result to the envelope
-    msgpack_object *envelope = result.data.via.array.ptr;
-    int p_version = 0;
-    // get the envelope version
-    if (envelope->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
-        p_version = (int) envelope->via.u64;
-    }
-    // get the backend UUID
-    if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
-        ESP_LOGI(TAG, "UUID: ");
-        print_message(envelope->via.raw.ptr, envelope->via.raw.size);
-    }
-    // only continue if the envelope version and variant match
-    if (p_version == proto_chained) {
-        // previous message signature (from our request message)
-        unsigned char prev_signature[UBIRCH_PROTOCOL_SIGN_SIZE];
-        if (load_signature(prev_signature)) {
-        }
-        // compare the previous signature to the received one
-        bool prevSignatureMatches = false;
-        if ((++envelope)->type == MSGPACK_OBJECT_RAW) {
-            if (envelope->via.raw.size == crypto_sign_BYTES) {
-                prevSignatureMatches = !memcmp(prev_signature, envelope->via.raw.ptr, UBIRCH_PROTOCOL_SIGN_SIZE);
-            }
-        }
-        // only continue, if the signatures match
-        if (prevSignatureMatches && (++envelope)->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
-            switch ((unsigned int) envelope->via.u64) {
-                case MSGPACK_MSG_REPLY:
-```
-
-- compare the signatures and if they match, continue with the payload, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L229-L251)
-```c
-                    if (envelope->type == MSGPACK_OBJECT_MAP) {
-                        msgpack_object_kv *map = envelope->via.map.ptr;
-                        for (uint32_t entries = 0; entries < envelope->via.map.size; map++, entries++) {
-                            //
-                            // UI PARAMETER SECTION
-                            // ad or modify the used parameters here
-                            //
-                            if (match(map, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
-                                // read new interval setting
-                                unsigned int value = (unsigned int) (map->val.via.u64);
-                                ESP_LOGI(TAG, "i = %d ", value);
-                                response = value;
-                            } 
-                            //
-                            // END OF PARAMETER SECTION
-                            //
-                        }
-                    }
-```
-- delete all temporary buffers, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L204-L221)
-```c
-                    break;
-                case UBIRCH_PROTOCOL_TYPE_HSK:
-                    //TODO handshake reply evaluation
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
-msgpack_unpacked_destroy(&result);
-```
-- delete the unpacker, see [(code)](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.c#L145)
-```c
-msgpack_unpacker_free(unpacker);
-
-```

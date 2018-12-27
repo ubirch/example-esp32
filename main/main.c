@@ -130,6 +130,7 @@ static esp_err_t init_system() {
     check_key_status();
 
     sensor_setup();
+    oled_reset();
 
     return err;
 }

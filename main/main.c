@@ -34,6 +34,7 @@
 #include <ubirch_ota_task.h>
 #include <ubirch_ota.h>
 #include <time.h>
+#include <libGSM.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -62,10 +63,10 @@ static void main_task(void *pvParameters) {
     bool force_fw_update = false;
     EventBits_t event_bits;
     for (;;) {
-        event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
+        event_bits = xEventGroupWaitBits(network_event_group, NETWORK_GSM_READY | NETWORK_STA_READY | NETWORK_ETH_READY,
                                          false, false, portMAX_DELAY);
         //
-        if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
+        if (event_bits & (NETWORK_GSM_READY | NETWORK_STA_READY | NETWORK_ETH_READY)) {
             // after the device is ready, first try a firmwate update
             if (!force_fw_update) {
                 ubirch_firmware_update();
@@ -101,9 +102,10 @@ static void update_time_task(void __unused *pvParameter) {
     EventBits_t event_bits;
 
     for (;;) {
-        event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
+        event_bits = xEventGroupWaitBits(network_event_group,
+                                         (NETWORK_GSM_READY | NETWORK_ETH_READY | NETWORK_STA_READY),
                                          false, false, portMAX_DELAY);
-        if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
+        if (event_bits & (NETWORK_GSM_READY | NETWORK_ETH_READY | NETWORK_STA_READY)) {
             sntp_update();
         }
         vTaskDelay(21600000);  // delay this task for the next 6 hours
@@ -134,6 +136,23 @@ static void enter_console_task(void *pvParameter) {
 
 #pragma GCC diagnostic pop
 
+static esp_err_t init_gsm_modem() {
+    esp_err_t err;
+
+    if (ppposInit() == 0) {
+        ESP_LOGE("PPPoS EXAMPLE", "ERROR: GSM not initialized, HALTED");
+        xEventGroupClearBits(network_event_group, NETWORK_GSM_READY);
+        err = ESP_ERR_NOT_FOUND;
+        while (1) {
+            vTaskDelay(1000 / portTICK_RATE_MS);
+        }
+    } else {
+        xEventGroupSetBits(network_event_group, NETWORK_GSM_READY);
+        err = ESP_OK;
+    }
+    return err;
+}
+
 /**
  * Initialize the basic system components
  * @return ESP_OK or error code.
@@ -160,13 +179,14 @@ static esp_err_t init_system() {
     init_console();
     init_wifi();
 
+    ESP_ERROR_CHECK(init_gsm_modem());
+
     set_hw_ID();
 
     sensor_setup();
 
     return err;
 }
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"

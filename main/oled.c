@@ -15,11 +15,6 @@
 #define UBIRCH_LOGO_BW_FRAME_WIDTH 32
 #define UBIRCH_LOGO_BW_FRAME_HEIGHT 32
 
-// I2C OLED Display works with SSD1306 driver
-#define OLED_SDA 4
-#define OLED_SCL 15
-#define OLED_RST 16
-
 
 /* Piskel data for "uBirch_Logo_bw" */
 
@@ -78,15 +73,17 @@ void draw_logo(uint8_t pos_x, uint8_t pos_y){
 }
 
 void oled_reset(){
+    vTaskDelay(5000 / portTICK_RATE_MS);
     gpio_set_direction(OLED_RST, GPIO_MODE_OUTPUT);
-    gpio_set_level(OLED_RST,0);
-    vTaskDelay(50/portTICK_RATE_MS);
-    gpio_set_level(OLED_RST,1);
-    vTaskDelay(50/portTICK_RATE_MS);
-    gpio_set_level(OLED_RST,0);
-    vTaskDelay(50/portTICK_RATE_MS);
-    gpio_set_level(OLED_RST,1);
-    ESP_LOGI(__func__,"");
+    gpio_set_level(OLED_RST, 0);
+    vTaskDelay(50 / portTICK_RATE_MS);
+    gpio_set_level(OLED_RST, 1);
+    vTaskDelay(50 / portTICK_RATE_MS);
+    gpio_set_level(OLED_RST, 0);
+    vTaskDelay(50 / portTICK_RATE_MS);
+    gpio_set_level(OLED_RST, 1);
+//        gpio_set_direction(OLED_RST, GPIO_MODE_INPUT);
+    ESP_LOGI(__func__, "");
 }
 
 void oled_show() {
@@ -95,9 +92,9 @@ void oled_show() {
         ESP_LOGI("OLED", "oled inited");
         ssd1306_draw_rectangle(0, 0, 0, 90, 32, 1);
         ssd1306_select_font(0, 0);
-        ssd1306_draw_string(0, 1, 1, "hallo stephan", 1, 0);
+        ssd1306_draw_string(0, 2, 1, "hallo stephan", 1, 0);
         ssd1306_select_font(0, 1);
-        ssd1306_draw_string(0, 1, 18, "so gehts", 1, 0);
+        ssd1306_draw_string(0, 2, 18, "so gehts auch", 1, 0);
         draw_logo(95,0);
         ssd1306_refresh(0, true);
     } else {

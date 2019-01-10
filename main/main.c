@@ -34,6 +34,7 @@
 #include <ubirch_ota_task.h>
 #include <ubirch_ota.h>
 #include <time.h>
+#include <PN532.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -134,6 +135,52 @@ static void enter_console_task(void *pvParameter) {
 
 #pragma GCC diagnostic pop
 
+//#define SDA_PIN 21
+//#define SCL_PIN 22
+//
+//
+//static char tag[] = "i2cscanner";
+//
+//void task_i2cscanner(void) {
+//    ESP_LOGD(tag, ">> i2cScanner");
+//    i2c_config_t conf;
+//    conf.mode = I2C_MODE_MASTER;
+//    conf.sda_io_num = SDA_PIN;
+//    conf.scl_io_num = SCL_PIN;
+//    conf.sda_pullup_en = GPIO_PULLUP_DISABLE;
+//    conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
+//    conf.master.clk_speed = 400000;
+//    i2c_param_config(I2C_NUM_0, &conf);
+//
+//    i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
+//
+//    int i;
+//    esp_err_t espRc;
+//    printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
+//    printf("00:         ");
+//    for (i = 0; i < 0xff; i++) {
+//        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+//        i2c_master_start(cmd);
+//        i2c_master_write_byte(cmd, (i) | I2C_MASTER_WRITE, 1 /* expect ack */);
+//        i2c_master_stop(cmd);
+//
+//        espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
+//        if (i % 16 == 0) {
+//            printf("\n%.2x:", i);
+//        }
+//        if (espRc == 0) {
+//            printf(" %.2x", i);
+//        } else {
+//            printf(" --");
+//        }
+//        // ESP_LOGD(tag, "i=%d, rc=%d (0x%x)", i, espRc, espRc);
+//        i2c_cmd_link_delete(cmd);
+//    }
+//    printf("\n");
+//    vTaskDelete(NULL);
+//}
+//
+
 /**
  * Initialize the basic system components
  * @return ESP_OK or error code.
@@ -141,6 +188,10 @@ static void enter_console_task(void *pvParameter) {
 static esp_err_t init_system() {
 
     esp_err_t err;
+
+    uint8_t uid[7];
+    uint8_t uidLength;
+
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
         // OTA app partition table has a smaller NVS partition size than the non-OTA
@@ -163,6 +214,34 @@ static esp_err_t init_system() {
     set_hw_ID();
 
     sensor_setup();
+
+
+    if (init_PN532_I2C(21, 22, 12, 19, 0)) {
+        ESP_LOGI(TAG, "NFC init complete");
+        // send dummy command to wake board up
+        getPN532FirmwareVersion();
+
+        setPassiveActivationRetries(0xFF);
+
+        // configure board to read RFID tags
+        SAMConfig();
+        if (readPassiveTargetID(0, uid, &uidLength, 30000)) {
+            ESP_LOGI(TAG, "UID = %02x %02x %02x %02x %02x %02x %02x", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5],
+                     uid[6]);
+        } else {
+            ESP_LOGI(TAG, " FAILED TO READ");
+        }
+    } else {
+        ESP_LOGW(TAG, "NFC init FAILED");
+    }
+
+
+//    uint8_t nfc_buffer[4];
+//    for (int i =  0; i < 0xff ; ++i) {
+//        mifareultralight_ReadPage(i, nfc_buffer);
+//        ESP_LOGI("I", "%d", i);
+//        esp_log_buffer_hex("nfc read", nfc_buffer, 4);
+//    }
 
     return err;
 }

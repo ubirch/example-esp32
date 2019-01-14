@@ -30,4 +30,4 @@
 	url = https://github.com/ubirch/ubirch-esp32-key-storage.git
 [submodule "components/esp-pn532"]
 	path = components/esp-pn532
-	url = https://github.com/lucafaccin/esp-pn532.git
+	url = https://github.com/ubirch/esp-pn532.git

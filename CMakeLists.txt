@@ -22,6 +22,10 @@ message(STATUS "IDF_PATH: ${IDF_PATH}")
 # add some necessary defnitions
 add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
 
+# add definition for NFC console
+add_definitions(-DNFC_CONSOLE)
+
+
 set(EXCLUDE_COMPONENTS libsodium)
 
 # set the components local to our project

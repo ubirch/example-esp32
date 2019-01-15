@@ -10,6 +10,7 @@
 #include <driver/gpio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <fonts.h>
 
 #define UBIRCH_LOGO_BW_FRAME_COUNT 1
 #define UBIRCH_LOGO_BW_FRAME_WIDTH 32
@@ -86,17 +87,20 @@ void oled_reset(){
     ESP_LOGI(__func__, "");
 }
 
+static int fonty = 0;
 void oled_show() {
     oled_reset();
     if (ssd1306_init(0, OLED_SCL, OLED_SDA)) {
+        fonty = (fonty + 1) % NUM_FONTS;
         ESP_LOGI("OLED", "oled inited");
-        ssd1306_draw_rectangle(0, 0, 0, 90, 32, 1);
-        ssd1306_select_font(0, 0);
-        ssd1306_draw_string(0, 2, 1, "hallo stephan", 1, 0);
-        ssd1306_select_font(0, 1);
-        ssd1306_draw_string(0, 2, 18, "so gehts auch", 1, 0);
-        draw_logo(95,0);
+//        ssd1306_draw_rectangle(0, 0, 0, 90, 32, 1);
+        ssd1306_select_font(0, fonty);
+        ssd1306_draw_string(0, 0, 0, "hi", 1, 0);
+//        ssd1306_select_font(0, 1);
+//        ssd1306_draw_string(0, 2, 18, "so gehts auch", 1, 0);
+//        draw_logo(95,0);
         ssd1306_refresh(0, true);
+        fonty = (fonty + 1) % NUM_FONTS;
     } else {
         ESP_LOGE("OLED", "oled init failed");
     }

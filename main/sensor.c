@@ -94,5 +94,5 @@ void sensor_setup() {
 
     send_message(f_hall, f_temperature);
 
-    vTaskDelay(pdMS_TO_TICKS(30000));
+    vTaskDelay(pdMS_TO_TICKS(CONFIG_UBIRCH_DEFAULT_INTERVAL));
 }

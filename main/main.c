@@ -130,7 +130,7 @@ static esp_err_t init_system() {
 #endif
 
     init_console();
-    initialise_wifi();
+    init_wifi();
 
     set_hw_ID();
     check_key_status();

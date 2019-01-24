@@ -20,11 +20,13 @@ void init_adc() {
 }
 
 #define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
-#define NO_OF_SAMPLES   128          //Multisampling
+#define NO_OF_SAMPLES   1024          //Multisampling
+#define NO_OF_MEAN      8
+#define MEAN_SHIFT      3
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC_CHANNEL_6;     //GPIO34 if ADC1, GPIO14 if ADC2
-static const adc_atten_t atten = ADC_ATTEN_DB_0;
+static const adc_channel_t channel = ADC_CHANNEL_0;     //GPIO34 if ADC1, GPIO14 if ADC2
+static const adc_atten_t atten = ADC_ATTEN_DB_11;
 static const adc_unit_t unit = ADC_UNIT_1;
 
 static void check_efuse() {
@@ -61,8 +63,11 @@ void adc_task() {
     if (unit == ADC_UNIT_1) {
         adc1_config_width(ADC_WIDTH_BIT_12);
         adc1_config_channel_atten(channel, atten);
+        adc_set_clk_div(1);
     } else {
         adc2_config_channel_atten((adc2_channel_t) channel, atten);
+        adc2_config_channel_atten(channel, atten);
+        adc_set_clk_div(1);
     }
 
     //Characterize ADC
@@ -70,23 +75,61 @@ void adc_task() {
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
     print_char_val_type(val_type);
 
+    uint16_t adc_data[NO_OF_SAMPLES/NO_OF_MEAN];
+    uint16_t adc_mean = 0;
+    uint16_t adc_max = 0;
+
+
     //Continuously sample ADC1
     while (1) {
         uint32_t adc_reading = 0;
         //Multisampling
-        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+        for (int i = 0; i < NO_OF_SAMPLES/NO_OF_MEAN; i++) {
             if (unit == ADC_UNIT_1) {
-                adc_reading += adc1_get_raw((adc1_channel_t) channel);
+                // reset the mean value
+                adc_mean = 0;
+                // take the mean value over NO_OF_MEAN
+                for (int j = 0; j < NO_OF_MEAN; ++j) {
+                    adc_mean += adc1_get_raw((adc1_channel_t) channel) >> MEAN_SHIFT;
+                }
+                adc_data[i] = adc_mean;
+                adc_reading += adc_data[i];
             } else {
-                int raw;
-                adc2_get_raw((adc2_channel_t) channel, ADC_WIDTH_BIT_12, &raw);
-                adc_reading += raw;
+                // reset the mean value
+                adc_mean = 0;
+                // take the mean value over NO_OF_MEAN
+                int adc_temp = 0;
+                esp_err_t err = ESP_OK;
+                for (int j = 0; j < NO_OF_MEAN; ++j) {
+                    err = adc2_get_raw((adc1_channel_t) channel,  ADC_WIDTH_BIT_12, &adc_temp);
+                    if (err != ESP_OK) {
+                        printf("error adc\r\n");
+                    }
+                    adc_mean += adc_temp >> MEAN_SHIFT;
+                }
+                adc_data[i] = adc_mean;
+                adc_reading += adc_data[i];
             }
         }
-        adc_reading /= NO_OF_SAMPLES;
+
+        adc_reading /= NO_OF_SAMPLES/NO_OF_MEAN;
+        // get the maximum value
+        adc_max = 0;
+        for (int k = 0; k < NO_OF_SAMPLES/NO_OF_MEAN; ++k) {
+            if(adc_data[k] > adc_max) {
+                adc_max = adc_data[k];
+            }
+        }
         //Convert adc_reading to voltage in mV
-        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_max, adc_chars);
+        for (int j = 0; j < NO_OF_SAMPLES/NO_OF_MEAN ; ++j) {
+            printf(" %d,", adc_data[j]);
+        }
+        printf("\r\n");
+        float current = voltage * 2500 / 1.414;
+        printf("Raw: %d\tVoltage: %dmV\tCurrent: %2.6f\n", adc_reading, voltage,current);
+
+
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

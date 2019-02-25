@@ -31,6 +31,7 @@
 #include <response.h>
 #include <esp_log.h>
 #include <esp32-hal-adc.h>
+#include <esp32-temp.h>
 #include "sensor.h"
 
 #define BLUE_LED GPIO_NUM_2
@@ -88,7 +89,7 @@ void sensor_setup() {
     if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
 
     int f_hall = hallRead();
-    float f_temperature = temperatureRead();
+    float f_temperature = temperatureReadFixed();
     ESP_LOGI(__func__, "Hall Sensor = %d ", f_hall);
     ESP_LOGI(__func__, "Temp Sensor = %f", f_temperature);
 

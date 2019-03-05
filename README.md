@@ -7,8 +7,8 @@
     1. [ESP32-IDF](#esp32-idf)
     1. [example project ESP32](#example-project-esp32)
         1. [The submodules](#the-submodules)
-1. [Configuration](#configuration)
 1. [Build your application](#build-your-application)
+1. [Configuration](#configuration)
 1. [Serial Interface](#serial-interface)
     1. [Tools for Serial Connection](#tools-for-serial-connection)
     1. [Console](#console)
@@ -43,6 +43,8 @@ git clone https://github.com/espressif/esp-idf.git
 
 Use the [guide](https://docs.espressif.com/projects/esp-idf/en/latest/) to install and configure
 the ESP-IDF.
+
+> **Checkout the last stable release of the `ESP-IDF`. The example was tested on `release/V3.2`**
 
 ### example project ESP32
 
@@ -98,15 +100,6 @@ This list provides the links to the submodule repositories:
 - [ubirch-esp32-api-http](https://github.com/ubirch/ubirch-esp32-api-http)
 - [ubirch-esp32-ota](https://github.com/ubirch/ubirch-esp32-ota)
 
-## Configuration
-
-The URLs for the data, keys and fimrware updates can be configured by running:
-```bash
-make menuconfig
-```
-Got to the Category `UBIRCH` to setup the URL for the firmware update
-and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
-the key server URL and to adjust the measuring interval.
 
 ## Build your application
 
@@ -138,6 +131,18 @@ To cleanup the build directory type:
 To flash the device, type:
 ``` $ make app-flash```
 
+## Configuration
+
+The URLs for the data, keys and fimrware updates can be configured by running from the `build` directory,
+or if you are working with Clion, from the `cmake-build-debug` directory:
+```bash
+make menuconfig
+```
+Got to the Category `UBIRCH` to setup the URL for the firmware update
+and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
+the key server URL and to adjust the measuring interval.
+
+
 ## Serial Interface
 
 The Serial interface for the ESP32 is managed via a a specific interaface chip on your ESP32 board,
@@ -152,9 +157,9 @@ according to the [Establish Serial Connection with ESP32 guide](https://docs.esp
 
 ### Console
 
-The console is a [submodule](components/ubirch-esp32-console) of the example,
+The console is a [component](https://github.com/ubirch/example-esp32/tree/master/components) of the example,
 which provides a way to locally communicate with the device, via serial interface.
-Check the [README](components/ubirch-esp32-console/README.md) for more details.
+Check the [README](https://github.com/ubirch/ubirch-esp32-console/blob/master/README.md) for more details.
 
 #### Enter Console mode
 
@@ -176,8 +181,15 @@ device cannot run. properly.
 
 ## Register your device in the Backend
 
-To register your device ath the backend, follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html)
+To register your device at the [demo-backend](https://ubirch.demo.ubirch.com/), follow the [ubirch Cloud Services Guideline](https://developer.ubirch.com/cloud-services.html).
 Therefore the hardware device ID of the device is needed, which is printed out on the [console](#console) with the command `status`.
+
+Before you can register the device, you need a connection to the internet.
+If you are using wifi, go to the [console](#console)  and `join` a Wifi with:
+
+```[bash]
+join YOUR-WIFI-SSID YOUR-WIFI-PWD
+```
 
 The corresponding output may look like this:
 
@@ -196,11 +208,11 @@ Copy the UUID and register the device.
 - try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L181-L199)
 - create the following tasks, which are afterwards handled by the system:
     - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L114-L130),
-    allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](components/ubirch-esp32-console/README.md)
+    allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](https://github.com/ubirch/ubirch-esp32-console/blob/master/README.md)
     - [**update_time_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L97-L108),
     updates the time via sntp
     - [**ubirch_ota_task**](https://github.com/ubirch/ubirch-esp32-ota/blob/master/ubirch_ota_task.c#L38-L56),
-    checks if firmware updates are availabe and performs the updates. For more details, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-ota) and the [README](components/ubirch-esp32-ota/README.md)
+    checks if firmware updates are availabe and performs the updates. For more details, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-ota) and the [README](https://github.com/ubirch/ubirch-esp32-ota/blob/master/README.md)
     - [**main_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L60-L90),
     performs the main functionality of the application.
     To extend this example to your specific application, you can apply your code [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L90)
@@ -209,11 +221,11 @@ Copy the UUID and register the device.
 
 - generate keys, see [create_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L44)
 - register keys at the backend, see [register_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L51)
-- store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.h#L84)
-- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/example-esp32/blob/master/main/key_handling.c#L49-L54))
-- create a message in msgpack format, according to ubirch-protocol, see [create_message()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L80)
-- make a http post request, see [http_post_task()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L49)
-- evaluate the message response, see [check_response()](https://github.com/ubirch/example-esp32/blob/master/main/ubirch-proto-http.h#L54)
+- store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/message.h#L38)
+- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/ubirch-esp32-key-storage/blob/main/key_handling.c#L47-L52))
+- create a message in msgpack format, according to ubirch-protocol, see [ubirch_message()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/message.h#L62)
+- make a http post request, see [ubirch_send()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/ubirch_api.h#L43)
+- evaluate the message response, see [ubirch_parse_response()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/response.h#L42)
 - react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
 
 

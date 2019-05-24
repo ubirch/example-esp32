@@ -44,4 +44,6 @@ void set_hw_ID(void);
  */
 void get_hw_ID(void);
 
+char *get_hw_ID_string(void);
+
 #endif /* UTIL_H */

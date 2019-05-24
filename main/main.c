@@ -34,6 +34,7 @@
 #include <ubirch_ota_task.h>
 #include <ubirch_ota.h>
 #include <time.h>
+#include <ubirch-protocol-c8y/ubirch-protocol-c8y.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -47,9 +48,11 @@ static TaskHandle_t fw_update_task_handle = NULL;
 static TaskHandle_t main_task_handle = NULL;
 static TaskHandle_t net_config_handle = NULL;
 static TaskHandle_t console_handle = NULL;
+static TaskHandle_t c8y_handle = NULL;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
+
 
 /*!
  * Main task performs the main functionality of the application,
@@ -110,6 +113,13 @@ static void update_time_task(void __unused *pvParameter) {
     }
 }
 
+static void c8y_task(void __unused *pvParameter) {
+	for (;;) {
+		c8y_test();
+		vTaskDelay(pdMS_TO_TICKS(2000));
+	}
+}
+
 /*!
  *
  * @param pvParameters are currently not used, but part of the task declaration.
@@ -124,7 +134,9 @@ static void enter_console_task(void *pvParameter) {
             if (main_task_handle) vTaskSuspend(main_task_handle);
             if (fw_update_task_handle) vTaskSuspend(fw_update_task_handle);
             if (net_config_handle) vTaskSuspend(net_config_handle);
+	        if (c8y_handle) vTaskSuspend(c8y_handle);
             run_console();
+	        if (c8y_handle) vTaskResume(c8y_handle);
             if (fw_update_task_handle) vTaskResume(net_config_handle);
             if (net_config_handle) vTaskResume(fw_update_task_handle);
             if (main_task_handle) vTaskResume(main_task_handle);
@@ -181,7 +193,7 @@ void app_main() {
     // initialize the system
     init_system();
 
-    ESP_LOGI(TAG, "connecting to wifi");
+	ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
 
     err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
@@ -200,11 +212,16 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
-    // create the system tasks to be executed
+
+
+	// create the system tasks to be executed
     xTaskCreate(&enter_console_task, "console", 4096, NULL, 7, &console_handle);
-    xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
-    xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
-    xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
+
+	xTaskCreate(&c8y_task, "c8y", 8192, NULL, 6, &c8y_handle);
+
+//    xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
+//    xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
+//    xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
 
     ESP_LOGI(TAG, "all tasks created");
 

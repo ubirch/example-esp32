@@ -26,11 +26,11 @@ typedef struct c8y_response {
 	char *buffer;
 	size_t used;
 	size_t free;
-	size_t off;
-	size_t parsed;
-	msgpack_zone *z;
+//	size_t off;
+//	size_t parsed;
+//	msgpack_zone *z;
 	size_t initial_buffer_size;
-	void *ctx;
+//	void *ctx;
 } c8y_response;
 
 typedef unsigned int _c8y_atomic_counter_t;
@@ -43,7 +43,7 @@ bool c8y_expand_buffer(c8y_response *response, size_t size);
 bool c8y_response_init(c8y_response *response, size_t initial_buffer_size);
 
 
-void c8yHttpClientInit(const char *uuid);
+void c8y_http_client_init(const char *uuid);
 
 void c8y_test(void);
 

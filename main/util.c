@@ -49,7 +49,7 @@ void get_hw_ID(void) {
 
 }
 
-char *get_hw_ID_string(void) {
+char *get_hw_ID_string(void) { // 37 char
 	char *string_UUID = malloc(2 * sizeof(UUID) + 5);
 	sprintf(string_UUID, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 	        UUID[0], UUID[1], UUID[2], UUID[3], UUID[4], UUID[5], UUID[6], UUID[7],

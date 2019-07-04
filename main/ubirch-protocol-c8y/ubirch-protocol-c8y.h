@@ -26,11 +26,7 @@ typedef struct c8y_response {
 	char *buffer;
 	size_t used;
 	size_t free;
-//	size_t off;
-//	size_t parsed;
-//	msgpack_zone *z;
 	size_t initial_buffer_size;
-//	void *ctx;
 } c8y_response;
 
 typedef unsigned int _c8y_atomic_counter_t;
@@ -38,12 +34,19 @@ typedef unsigned int _c8y_atomic_counter_t;
 #define _c8y_sync_incr_and_fetch(ptr) __sync_add_and_fetch(ptr, 1)
 
 
-bool c8y_expand_buffer(c8y_response *response, size_t size);
+//bool c8y_expand_buffer(c8y_response *response, size_t size);
 
-bool c8y_response_init(c8y_response *response, size_t initial_buffer_size);
+//bool c8y_response_init(c8y_response *response, size_t initial_buffer_size);
 
 
 void c8y_http_client_init(const char *uuid);
+
+esp_err_t c8y_measurement(time_t timestamp, float temperature, float humidity);
+
+char *c8y_measurement_create_json(time_t timestamp, float f_temperature, float f_humidity);
+
+void c8y_get_authorization(char **auth);
+
 
 void c8y_test(void);
 

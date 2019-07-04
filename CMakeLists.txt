@@ -20,7 +20,7 @@ endif ()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
 # add some necessary defnitions
-add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION -DLWIP_SNMP -DSNMP_LWIP_MIB2 -DMIB2_STATS -DLWIP_RAW)
 
 set(EXCLUDE_COMPONENTS libsodium)
 

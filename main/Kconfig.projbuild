@@ -6,6 +6,12 @@ config UBIRCH_BACKEND_DATA_URL
     help
         The URL to send ubirch protocol messages to.
 
+config UBIRCH_BACKEND_DATA_URL_NIOMON
+    string "ubirch-protocol data URL to niomon"
+    default "https://niomon.dev.ubirch.com"
+    help
+        The URL to send ubirch protocol messages to.
+
 config UBIRCH_BACKEND_KEY_SERVER_URL
 	string "ubirch key server URL"
 	default "https://key.dev.ubirch.com/api/keyService/v1/pubkey/mpack"

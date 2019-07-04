@@ -31,4 +31,6 @@ void sensor_setup();
 
 void sensor_loop();
 
+void sensor_loop_niomon();
+
 #endif //EXAMPLE_ESP32_SENSOR_H

@@ -31,6 +31,8 @@
 #include <response.h>
 #include <esp_log.h>
 #include <esp32-hal-adc.h>
+#include <ubirch-protocol-c8y/ubirch-protocol-c8y.h>
+#include <time.h>
 //#include <esp32-temp.h>
 #include "sensor.h"
 
@@ -39,7 +41,7 @@
 
 extern unsigned char UUID[16];
 
-unsigned int interval = CONFIG_UBIRCH_DEFAULT_INTERVAL;
+unsigned int interval = 5; //CONFIG_UBIRCH_DEFAULT_INTERVAL;
 
 /*!
  * This function handles responses from the backend, where we can set parameters.
@@ -84,7 +86,7 @@ void sensor_setup() {
 /*!
  * The main sensor measurement function.
  */
- void sensor_loop() {
+void sensor_loop() {
      // let the LED blink
     if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
 
@@ -96,4 +98,49 @@ void sensor_setup() {
     send_message(f_hall, f_temperature);
 
     vTaskDelay(pdMS_TO_TICKS(interval));
+}
+
+
+/*!
+ * The actual sending function that packages the data and sends it to the backend.
+ * @param temperature the temperature to send
+ * @param humidity the humidity value to send
+ * @return ESP_OK or an error code
+ */
+static esp_err_t send_message_niomon(char *data) {
+	msgpack_sbuffer *sbuf = msgpack_sbuffer_new(); //!< send buffer
+	msgpack_unpacker *unpacker = msgpack_unpacker_new(128); //!< receive unpacker
+
+	ubirch_message_niomon(sbuf, UUID, data);
+
+	ubirch_send_niomon(CONFIG_UBIRCH_BACKEND_DATA_URL_NIOMON, sbuf->data, sbuf->size, unpacker);
+	ubirch_parse_response(unpacker, response_handler);
+
+	msgpack_unpacker_free(unpacker);
+	msgpack_sbuffer_free(sbuf);
+
+	return ESP_OK;
+}
+
+void sensor_loop_niomon() {
+	// let the LED blink
+	if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
+
+	int f_hall = hallRead();
+	float f_temperature = temperatureRead();
+
+	time_t now;
+	time(&now);
+
+	ESP_LOGI(__func__, "Hall Sensor = %d ", f_hall);
+	ESP_LOGI(__func__, "Temp Sensor = %f", f_temperature);
+	ESP_LOGI(__func__, "send data to CUMULOCITY");
+	c8y_measurement(now, f_temperature, (float) f_hall);
+	char *measurement = c8y_measurement_create_json(now, f_temperature, f_hall);
+	ESP_LOGI(__func__, "send UPP to UBIRCH");
+	send_message_niomon(measurement);
+	ESP_LOGI(__func__, "DONE");
+
+
+	vTaskDelay(pdMS_TO_TICKS(interval));
 }

@@ -24,6 +24,8 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
+#include "lwipopts.h"
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <esp_log.h>
@@ -35,6 +37,12 @@
 #include <ubirch_ota.h>
 #include <time.h>
 #include <ubirch-protocol-c8y/ubirch-protocol-c8y.h>
+#include <ubirch-snmp/ubirch_snmp_agent.h>
+#include <snmp/snmp_example.h>
+#include <ping/ping.h>
+#include <tcpip_adapter.h>
+#include <esp_wifi.h>
+#include <lwip/ip_addr.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -65,10 +73,11 @@ static void main_task(void *pvParameters) {
     bool force_fw_update = false;
     EventBits_t event_bits;
     for (;;) {
-        event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
-                                         false, false, portMAX_DELAY);
+	    event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY | C8Y_READY,
+	                                     false, false, portMAX_DELAY);
         //
-        if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
+	    if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY | C8Y_READY)) {
+		    ESP_LOGD(__func__, "ACTIVATED");
             // after the device is ready, first try a firmwate update
             if (!force_fw_update) {
                 ubirch_firmware_update();
@@ -90,8 +99,10 @@ static void main_task(void *pvParameters) {
             //
             // APPLY  YOUR APPLICATION SPECIFIC CODE HERE
             //
-            sensor_loop();
-        }
+		    //sensor_loop();
+		    sensor_loop_niomon();
+
+	    }
     }
 }
 
@@ -114,8 +125,14 @@ static void update_time_task(void __unused *pvParameter) {
 }
 
 static void c8y_task(void __unused *pvParameter) {
+	EventBits_t event_bits;
+
 	for (;;) {
-		c8y_test();
+		event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
+		                                 false, false, portMAX_DELAY);
+		if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
+			c8y_test();
+		}
 		vTaskDelay(pdMS_TO_TICKS(2000));
 	}
 }
@@ -145,6 +162,29 @@ static void enter_console_task(void *pvParameter) {
 }
 
 #pragma GCC diagnostic pop
+
+static uint32_t wifi_get_local_ip(void) {
+	int bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
+	                               false, false, portMAX_DELAY);
+	tcpip_adapter_if_t ifx = TCPIP_ADAPTER_IF_AP;
+	tcpip_adapter_ip_info_t ip_info;
+	wifi_mode_t mode;
+
+	esp_wifi_get_mode(&mode);
+	if (WIFI_MODE_STA == mode) {
+		bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
+		                           false, false, portMAX_DELAY);
+		if (bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
+			ifx = TCPIP_ADAPTER_IF_STA;
+		} else {
+			ESP_LOGE(TAG, "sta has no IP");
+			return 0;
+		}
+	}
+
+	tcpip_adapter_get_ip_info(ifx, &ip_info);
+	return ip_info.ip.addr;
+}
 
 /**
  * Initialize the basic system components
@@ -176,6 +216,9 @@ static esp_err_t init_system() {
 
     sensor_setup();
 
+
+	snmp_example_init();
+
     return err;
 }
 
@@ -203,6 +246,11 @@ void app_main() {
         ESP_LOGD(TAG, "PASS: %.*s", wifi.pwd_length, wifi.pwd);
         if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
+//	        ip_addr_t ipaddr = {};
+//	        ipaddr.u_addr.ip4.addr =  wifi_get_local_ip();
+//            ping_init(&ipaddr);
+//	        ESP_LOGI(TAG, "ping inited");
+
         } else { // no connection possible
             ESP_LOGW(TAG, "no valid Wifi");
         }
@@ -212,16 +260,16 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
-
+	while (1);
 
 	// create the system tasks to be executed
     xTaskCreate(&enter_console_task, "console", 4096, NULL, 7, &console_handle);
 
 	xTaskCreate(&c8y_task, "c8y", 8192, NULL, 6, &c8y_handle);
 
-//    xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
-//    xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
-//    xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
+	xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
+	xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
+	xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
 
     ESP_LOGI(TAG, "all tasks created");
 

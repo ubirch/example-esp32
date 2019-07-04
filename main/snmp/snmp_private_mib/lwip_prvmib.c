@@ -73,7 +73,7 @@
 
 #if !SENSORS_USE_FILES || !SENSORS_SEARCH_FILES
 /** When not using & searching files, defines the number of sensors */
-#define SENSOR_COUNT 4
+#define SENSOR_COUNT 2
 #endif /* !SENSORS_USE_FILES || !SENSORS_SEARCH_FILES */
 
 /*
@@ -94,7 +94,7 @@
   text files in the "sensors" directory.
 */
 
-#define SENSOR_MAX      10
+#define SENSOR_MAX      SENSOR_COUNT
 #define SENSOR_NAME_LEN 20
 
 struct sensor_inf {
@@ -315,20 +315,27 @@ sensor_table_get_cell_instance(const u32_t *column, const u32_t *row_oid, u8_t r
 static snmp_err_t
 sensor_table_get_next_cell_instance(const u32_t *column, struct snmp_obj_id *row_oid,
                                     struct snmp_node_instance *cell_instance) {
-	ESP_LOGD(__func__, "");
+	ESP_LOGD("get", "");
+	vTaskDelay(10);
 	size_t i;
 	struct snmp_next_oid_state state;
 	u32_t result_temp[LWIP_ARRAYSIZE(sensor_table_oid_ranges)];
 
+	ESP_LOGD("", "1");
+	vTaskDelay(10);
 	LWIP_UNUSED_ARG(column);
 
 	/* init struct to search next oid */
 	snmp_next_oid_init(&state, row_oid->id, row_oid->len, result_temp, LWIP_ARRAYSIZE(sensor_table_oid_ranges));
+	ESP_LOGD("", "2");
+	vTaskDelay(10);
 
 	/* iterate over all possible OIDs to find the next one */
 	for (i = 0; i < LWIP_ARRAYSIZE(sensors); i++) {
 		if (sensors[i].num != 0) {
 			u32_t test_oid[LWIP_ARRAYSIZE(sensor_table_oid_ranges)];
+			ESP_LOGD("", "3");
+			vTaskDelay(10);
 
 			test_oid[0] = sensors[i].num;
 

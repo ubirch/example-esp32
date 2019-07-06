@@ -3,20 +3,16 @@ set(COMPONENT_SRCS
         sensor.c
         util.c
         ubirch-protocol-c8y/ubirch-protocol-c8y.c
-        ubirch-snmp/ubirch_snmp_agent.c
-        snmp/snmp_example.c
-        snmp/snmp_private_mib/lwip_prvmib.c
-        ping/ping.c
+        simple_snmp_agent/simple_snmp_agent.c
+        simple_snmp_agent/my_mib.c
         )
 
 set(COMPONENT_ADD_INCLUDEDIRS
         "${CMAKE_CURRENT_LIST_DIR}"
         ${CMAKE_CURRENT_LIST_DIR}/ubirch-protocol-c8y
-        ${CMAKE_CURRENT_LIST_DIR}/snmp
-        ${CMAKE_CURRENT_LIST_DIR}/snmp/snmp_private_mib
+        ${CMAKE_CURRENT_LIST_DIR}/simple_snmp_agent
         ../../esp-idf/components/lwip/lwip/src/apps/snmp
         ../../esp-idf/components/lwip/lwip/src/include/lwip/apps
-        ${CMAKE_CURRENT_LIST_DIR}/ping
         )
 
 set(COMPONENT_REQUIRES

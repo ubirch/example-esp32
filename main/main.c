@@ -37,12 +37,10 @@
 #include <ubirch_ota.h>
 #include <time.h>
 #include <ubirch-protocol-c8y/ubirch-protocol-c8y.h>
-#include <ubirch-snmp/ubirch_snmp_agent.h>
-#include <snmp/snmp_example.h>
-#include <ping/ping.h>
 #include <tcpip_adapter.h>
 #include <esp_wifi.h>
 #include <lwip/ip_addr.h>
+#include <simple_snmp_agent/simple_snmp_agent.h>
 
 #include "storage.h"
 #include "key_handling.h"
@@ -163,28 +161,6 @@ static void enter_console_task(void *pvParameter) {
 
 #pragma GCC diagnostic pop
 
-static uint32_t wifi_get_local_ip(void) {
-	int bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
-	                               false, false, portMAX_DELAY);
-	tcpip_adapter_if_t ifx = TCPIP_ADAPTER_IF_AP;
-	tcpip_adapter_ip_info_t ip_info;
-	wifi_mode_t mode;
-
-	esp_wifi_get_mode(&mode);
-	if (WIFI_MODE_STA == mode) {
-		bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
-		                           false, false, portMAX_DELAY);
-		if (bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
-			ifx = TCPIP_ADAPTER_IF_STA;
-		} else {
-			ESP_LOGE(TAG, "sta has no IP");
-			return 0;
-		}
-	}
-
-	tcpip_adapter_get_ip_info(ifx, &ip_info);
-	return ip_info.ip.addr;
-}
 
 /**
  * Initialize the basic system components
@@ -217,7 +193,7 @@ static esp_err_t init_system() {
     sensor_setup();
 
 
-	snmp_example_init();
+	snmp_start();
 
     return err;
 }

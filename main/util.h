@@ -44,6 +44,11 @@ void set_hw_ID(void);
  */
 void get_hw_ID(void);
 
+/*!
+ * Get the hw ID into a buffer, which is allocated inside this function.
+ * @note do not forget to free the buffer
+ * @return uuid as a string
+ */
 char *get_hw_ID_string(void);
 
 #endif /* UTIL_H */

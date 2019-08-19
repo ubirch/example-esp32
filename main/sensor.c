@@ -111,7 +111,7 @@ static esp_err_t send_message_niomon(char *data) {
 	msgpack_sbuffer *sbuf = msgpack_sbuffer_new(); //!< send buffer
 	msgpack_unpacker *unpacker = msgpack_unpacker_new(128); //!< receive unpacker
 
-	ubirch_message_niomon(sbuf, UUID, data);
+	ubirch_message_niomon(sbuf, UUID, (const unsigned char *) data);
 
 	ubirch_send_niomon(CONFIG_UBIRCH_BACKEND_DATA_URL_NIOMON, sbuf->data, sbuf->size, unpacker);
 	ubirch_parse_response(unpacker, response_handler);
@@ -120,6 +120,10 @@ static esp_err_t send_message_niomon(char *data) {
 	msgpack_sbuffer_free(sbuf);
 
 	return ESP_OK;
+}
+
+esp_err_t send_upp_niomon(char *data) {
+	return send_message_niomon(data);
 }
 
 void sensor_loop_niomon() {
@@ -142,5 +146,27 @@ void sensor_loop_niomon() {
 	ESP_LOGI(__func__, "DONE");
 
 
-	vTaskDelay(pdMS_TO_TICKS(interval));
+	vTaskDelay(portMAX_DELAY);
+}
+
+/*!
+ * The main sensor measurement function.
+ */
+void sensor_measure(char *data) {
+
+	int f_hall = hallRead();
+	float f_temperature = temperatureRead();
+
+	time_t now;
+	time(&now);
+
+	sprintf(data, "time = %ld, temp =%2.6f, hall=%d", now, f_temperature, f_hall);
+}
+
+float sensor_temperature(void) {
+	return temperatureRead();
+}
+
+int sensor_humidity(void) {
+	return hallRead();
 }

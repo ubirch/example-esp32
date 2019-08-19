@@ -64,7 +64,7 @@ esp_err_t c8y_load_status(void) {
 	size = 0;
 	err = kv_load("c8y_storage", "c8y_user", (void **) &c8y_status.username, &size);
 	if (memory_error_check(err)) return err;
-	// todo somehow the username is not 0 teminated and breaks
+	// somehow the username is not 0 teminated and breaks, if it won't be terminated
 	char *tmp = (char *) realloc(c8y_status.username, size + 1);
 	if (tmp == NULL) {
 		ESP_LOGE(__func__, "tmp == NULL");
@@ -75,7 +75,7 @@ esp_err_t c8y_load_status(void) {
 	size = 0;
 	err = kv_load("c8y_storage", "c8y_pass", (void **) &c8y_status.password, &size);
 	if (memory_error_check(err)) return err;
-	// todo somehow the password is not 0 teminated and breaks
+	// somehow the password is not 0 teminated and breaks, if it won't be terminated
 	tmp = (char *) realloc(c8y_status.password, size + 1);
 	if (tmp == NULL) {
 		ESP_LOGE(__func__, "tmp == NULL");
@@ -87,7 +87,7 @@ esp_err_t c8y_load_status(void) {
 	size = 0;
 	err = kv_load("c8y_storage", "c8y_id", (void **) &c8y_status.id, &size);
 	if (memory_error_check(err)) return err;
-	// todo somehow the password is not 0 teminated and breaks
+	// todo somehow the id is not 0 teminated and breaks
 	tmp = (char *) realloc(c8y_status.id, size + 1);
 	if (tmp == NULL) {
 		ESP_LOGE(__func__, "tmp == NULL");
@@ -175,7 +175,6 @@ static bool c8y_response_init(c8y_response *response, size_t initial_buffer_size
 	response->buffer = buffer;
 	response->used = 0;
 	response->free = initial_buffer_size - response->used;
-	response->initial_buffer_size = initial_buffer_size;
 	return true;
 }
 
@@ -269,6 +268,7 @@ static void c8y_response_free(c8y_response *response) {
 	free(response);
 }
 
+
 /*!
  * Get the authorization in base64 encoding,
  * consisting of the username and the password
@@ -316,7 +316,6 @@ static esp_err_t _c8y_http_event_handler(esp_http_client_event_t *evt) {
 			c8y_response *response = evt->user_data;
 
 			if (esp_http_client_is_chunked_response(evt->client)) {
-//				ESP_LOG_BUFFER_HEXDUMP("CHUNKED", evt->data, (uint16_t) evt->data_len, ESP_LOG_DEBUG);
 				if (c8y_buffer_capacity(response) < evt->data_len) {
 					c8y_reserve_buffer(response, (uint16_t) evt->data_len);
 				}
@@ -371,15 +370,16 @@ static esp_err_t c8y_terminate_string(c8y_response *response) {
 	response->free -= 1;
 	return ESP_OK;
 }
-
-/* @code Example of the bootsrap respnse json
- * {
- *      "password":"1Ex1_StR1w",
- *      "tenantId":"ubirch",
- *      "self":"http://management.cumulocity.com/devicecontrol/deviceCredentials/30AEA423-4968-1223-3445-566778899AAB",
- *      "id":"30AEA423-4968-1223-3445-566778899AAB",
- *      "username":"device_30AEA423-4968-1223-3445-566778899AAB"
- * }
+//############################################################################################
+/*
+ * JSON bootstrap response
+{
+	"password":"1Ex1_StR1w",
+	"tenantId":"ubirch",
+	"self":"http://management.cumulocity.com/devicecontrol/deviceCredentials/30AEA423-4968-1223-3445-566778899AAB",
+	"id":"30AEA423-4968-1223-3445-566778899AAB",
+	"username":"device_30AEA423-4968-1223-3445-566778899AAB"
+}
  * */
 
 /*!
@@ -402,6 +402,7 @@ static esp_err_t c8y_bootstrap_parse_response(c8y_response *response) {
 		strcpy(c8y_password, temp_object->valuestring);
 		c8y_password[len - 1] = '\0';
 		ESP_LOGD(__func__, "password: %s, len: %d", c8y_password, len - 1);
+		if (c8y_status.password != NULL) free(c8y_status.password);
 		c8y_status.password = c8y_password;
 	} else {
 		ESP_LOGW(__func__, "password not found");
@@ -415,6 +416,7 @@ static esp_err_t c8y_bootstrap_parse_response(c8y_response *response) {
 		strcpy(c8y_username, temp_object2->valuestring);
 		c8y_username[len - 1] = '\0';
 		ESP_LOGD(__func__, "username: %s, len: %d", c8y_username, len - 1);
+		if (c8y_status.username != NULL) free(c8y_status.username);
 		c8y_status.username = c8y_username;
 	} else {
 		ESP_LOGW(__func__, "username not found");
@@ -497,6 +499,7 @@ void c8y_bootstrap() {
 		c8y_response *response = c8y_response_new(160);
 		c8y_bootstrap_post(url, uuid, response);
 		c8y_response_free(response);
+		free(uuid);
 		vTaskDelay(pdMS_TO_TICKS(3000));
 	}
 }
@@ -612,6 +615,7 @@ esp_err_t c8y_registered() {
 	strcat(url, ".cumulocity.com"); // 15 char
 	strcat(url, "/identity/externalIds/c8y_Serial/"); // 33 char
 	strcat(url, uuid); // 37 char
+	free(uuid);
 
 	// get the authorization token
 	char *authorization = NULL;
@@ -786,6 +790,7 @@ void c8y_create() {
 	esp_err_t err = c8y_create_post(url, uuid, authorization, response);
 	c8y_response_free(response);
 	free(authorization);
+	free(uuid);
 	vTaskDelay(pdMS_TO_TICKS(3000));
 }
 
@@ -915,6 +920,7 @@ void c8y_register(void) {
 	esp_err_t err = c8y_register_post(url, uuid, authorization, response);
 	c8y_response_free(response);
 	free(authorization);
+	free(uuid);
 	vTaskDelay(pdMS_TO_TICKS(3000));
 }
 
@@ -957,7 +963,6 @@ char *c8y_measurement_create_json(time_t timestamp, float f_temperature, float f
 	localtime_r(&timestamp, &t);
 	sprintf(time_string, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
 	        (1900 + t.tm_year), (1 + t.tm_mon), t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, 0);
-	char *uuid = get_hw_ID_string();
 	cJSON *data_json = cJSON_CreateObject();
 	if (data_json == NULL) return ESP_FAIL;
 	cJSON *source = NULL;
@@ -1048,7 +1053,6 @@ esp_err_t c8y_measurement_post(const char *url, const char *data, const char *au
 	return err;
 }
 
-static float offset = 0.0;
 
 /*!
  * Perform a measurement post to Cumulocity.
@@ -1056,7 +1060,8 @@ static float offset = 0.0;
  * @param timestamp of the current measurement
  * @param temperature floating point value of the temperature
  * @param humidity floating point value of the humidity
- * @return
+ * @return ESP_OK, if measurement was posted successfully
+ * @return ESP_FAIL, if error
  */
 esp_err_t c8y_measurement(time_t timestamp, float temperature, float humidity) {
 	ESP_LOGD(__func__, "");
@@ -1071,8 +1076,6 @@ esp_err_t c8y_measurement(time_t timestamp, float temperature, float humidity) {
 	char *measurement = c8y_measurement_create_json(timestamp, temperature, humidity);
 	ESP_LOGI(__func__, "measurement: %s", measurement);
 
-	offset += 0.5;
-
 	char *authorization = NULL;
 	c8y_get_authorization(&authorization);
 
@@ -1084,7 +1087,9 @@ esp_err_t c8y_measurement(time_t timestamp, float temperature, float humidity) {
 	return err;
 }
 
-void c8y_test(void) {
+
+// todo change the name
+void c8y_start(void) {
 	ESP_LOGD(__func__, "");
 
 	c8y_status.bootstrapped = false;
@@ -1096,10 +1101,11 @@ void c8y_test(void) {
 		ESP_LOGW("C8Y-status", "not available");
 		c8y_status.bootstrapped = false;
 	}
-//	c8y_status.bootstrapped = false;
 // todo make the bootstrap automatic
 
-	c8y_http_client_init(get_hw_ID_string());
+	char *uuid = get_hw_ID_string();
+	c8y_http_client_init(uuid);
+	free(uuid);
 	c8y_bootstrap();
 	if (c8y_registered() != ESP_OK) {
 		c8y_create();
@@ -1107,20 +1113,8 @@ void c8y_test(void) {
 	}
 	c8y_store_status();
 
-
 	xEventGroupSetBits(network_event_group, C8Y_READY);
 
 	vTaskDelay(portMAX_DELAY);
-
-//	while (1) {
-//		c8y_measurement(time(NULL), 22.012 + offset, 45.432 - offset);
-//		if (rtc_wdt_is_on()) rtc_wdt_feed();
-//	}
-
 }
-
-void message_chained(ubirch_protocol_c8y *proto) {
-
-}
-
 

@@ -31,7 +31,7 @@
 #include "util.h"
 
 unsigned char UUID[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
-                          0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0x9A, 0xAB
+                          0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0x9a, 0xab
 };
 
 
@@ -43,15 +43,15 @@ void set_hw_ID(void) {
 }
 
 void get_hw_ID(void) {
-    printf("Hardware-Device-ID: %02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\r\n",
-           UUID[0], UUID[1], UUID[2], UUID[3], UUID[4], UUID[5], UUID[6], UUID[7],
-           UUID[8], UUID[9], UUID[10], UUID[11], UUID[12], UUID[13], UUID[14], UUID[15]);
+	printf("Hardware-Device-ID: %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\r\n",
+	       UUID[0], UUID[1], UUID[2], UUID[3], UUID[4], UUID[5], UUID[6], UUID[7],
+	       UUID[8], UUID[9], UUID[10], UUID[11], UUID[12], UUID[13], UUID[14], UUID[15]);
 
 }
 
 char *get_hw_ID_string(void) { // 37 char
 	char *string_UUID = malloc(2 * sizeof(UUID) + 5);
-	sprintf(string_UUID, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+	sprintf(string_UUID, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
 	        UUID[0], UUID[1], UUID[2], UUID[3], UUID[4], UUID[5], UUID[6], UUID[7],
 	        UUID[8], UUID[9], UUID[10], UUID[11], UUID[12], UUID[13], UUID[14], UUID[15]);
 	return string_UUID;

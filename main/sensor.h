@@ -33,4 +33,13 @@ void sensor_loop();
 
 void sensor_loop_niomon();
 
+void sensor_measure(char *data);
+
+float sensor_temperature(void);
+
+int sensor_humidity(void);
+
+esp_err_t send_upp_niomon(char *data);
+
+
 #endif //EXAMPLE_ESP32_SENSOR_H

@@ -22,33 +22,55 @@ typedef struct ubirch_protocol_c8y {
 	unsigned int status;                                //!< amount of bytes packed
 } ubirch_protocol_c8y;
 
+
 typedef struct c8y_response {
 	char *buffer;
 	size_t used;
 	size_t free;
-	size_t initial_buffer_size;
 } c8y_response;
 
-typedef unsigned int _c8y_atomic_counter_t;
-#define _c8y_sync_decr_and_fetch(ptr) __sync_sub_and_fetch(ptr, 1)
-#define _c8y_sync_incr_and_fetch(ptr) __sync_add_and_fetch(ptr, 1)
-
-
-//bool c8y_expand_buffer(c8y_response *response, size_t size);
-
-//bool c8y_response_init(c8y_response *response, size_t initial_buffer_size);
-
-
+/*!
+ * Initialize the cumulocity http client.
+ * @param uuid id of the device
+ */
 void c8y_http_client_init(const char *uuid);
 
+/*!
+ * Perform a measurement post to Cumulocity.
+ *
+ * @param timestamp of the current measurement
+ * @param temperature floating point value of the temperature
+ * @param humidity floating point value of the humidity
+ * @return ESP_OK, if measurement was posted successfully
+ * @return ESP_FAIL, if error
+ */
 esp_err_t c8y_measurement(time_t timestamp, float temperature, float humidity);
 
+/*!
+ * Create a json object for the measurement data to post to Cumulocity.
+ *
+ * @param timestamp of the current measurement
+ * @param f_temperature floating point value of the temperature
+ * @param f_humidity floating point value of the humidity
+ * @return serialized json in char string format
+ */
 char *c8y_measurement_create_json(time_t timestamp, float f_temperature, float f_humidity);
 
+/*!
+ * Get the authorization in base64 encoding,
+ * consisting of the username and the password
+ *
+ * @param auth is the pointer to the string pointer for the authorization string.
+ *
+ * @note this function allocates memory for the authorization token.
+ * todo error handling
+ */
 void c8y_get_authorization(char **auth);
 
-
-void c8y_test(void);
+/*!
+ * Start the cumulocity client
+ */
+void c8y_start(void);
 
 
 /*!
@@ -96,56 +118,6 @@ inline ubirch_protocol_c8y *ubirch_protocol_c8y_new(enum ubirch_protocol_variant
 	ubirch_protocol_c8y_init(proto, variant, data_type, data, sign, uuid);
 
 	return proto;
-}
-
-inline int ubirch_protocol_c8y_start(ubirch_protocol *proto) {
-//	if (proto == NULL || pk == NULL) return -1;
-//	if (proto->status != UBIRCH_PROTOCOL_INITIALIZED) return -2;
-//
-//	if (proto->version == proto_signed || proto->version == proto_chained) {
-//		mbedtls_sha512_init(&proto->hash);
-//		mbedtls_sha512_starts(&proto->hash, 0);
-//	}
-//
-//	// the message consists of 3 header elements, the payload and (not included) the signature
-//	switch (proto->version) {
-//		case proto_plain:
-//			// todo
-//			break;
-//		case proto_signed:
-//			// todo
-//			break;
-//		case proto_chained:
-//			// todo
-//			break;
-//		default:
-//			return -3;
-//	}
-//
-//	/*
-//	 * +=========+======+==================+======+=========+-------------+
-//	 * | VERSION | UUID | [PREV-SIGNATURE] | TYPE | PAYLOAD | [SIGNATURE] |
-//	 * +=========+======+==================+======+=========+-------------+
-//	 */
-//
-//	// 1 - protocol version
-//	msgpack_pack_fix_uint16(pk, proto->version);
-//
-//	// 2 - device ID
-//	msgpack_pack_raw(pk, 16);
-//	msgpack_pack_raw_body(pk, proto->uuid, sizeof(proto->uuid));
-//
-//	// 3 the last signature (if chained)
-//	if (proto->version == proto_chained) {
-//		msgpack_pack_raw(pk, sizeof(proto->signature));
-//		msgpack_pack_raw_body(pk, proto->signature, sizeof(proto->signature));
-//	}
-//
-//	// 4 the payload type
-//	msgpack_pack_int(pk, proto->type);
-//
-//	proto->status = UBIRCH_PROTOCOL_STARTED;
-	return 0;
 }
 
 

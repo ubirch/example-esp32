@@ -55,6 +55,7 @@ static TaskHandle_t main_task_handle = NULL;
 static TaskHandle_t net_config_handle = NULL;
 static TaskHandle_t console_handle = NULL;
 static TaskHandle_t c8y_handle = NULL;
+static TaskHandle_t niomon_handle = NULL;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
@@ -75,7 +76,7 @@ static void main_task(void *pvParameters) {
 	                                     false, false, portMAX_DELAY);
         //
 	    if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY | C8Y_READY)) {
-		    ESP_LOGD(__func__, "ACTIVATED");
+		    // ESP_LOGD(__func__, "ACTIVATED");
             // after the device is ready, first try a firmwate update
             if (!force_fw_update) {
                 ubirch_firmware_update();
@@ -129,9 +130,23 @@ static void c8y_task(void __unused *pvParameter) {
 		event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
 		                                 false, false, portMAX_DELAY);
 		if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
-			c8y_test();
+			c8y_start();
 		}
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		vTaskDelay(portMAX_DELAY);
+	}
+}
+
+static void niomon_task(void __unused *pvParameter) {
+	EventBits_t event_bits;
+
+	for (;;) {
+		event_bits = xEventGroupWaitBits(network_event_group, (SNMP_READY),
+		                                 false, false, portMAX_DELAY);
+		if (event_bits & (SNMP_READY)) {
+			send_upp_niomon(snmp_data_buffer);
+			ESP_LOGI(__func__, "sent data to niomon");
+			xEventGroupClearBits(network_event_group, SNMP_READY);
+		}
 	}
 }
 
@@ -150,7 +165,9 @@ static void enter_console_task(void *pvParameter) {
             if (fw_update_task_handle) vTaskSuspend(fw_update_task_handle);
             if (net_config_handle) vTaskSuspend(net_config_handle);
 	        if (c8y_handle) vTaskSuspend(c8y_handle);
+	        if (niomon_handle) vTaskSuspend(niomon_handle);
             run_console();
+	        if (niomon_handle) vTaskResume(niomon_handle);
 	        if (c8y_handle) vTaskResume(c8y_handle);
             if (fw_update_task_handle) vTaskResume(net_config_handle);
             if (net_config_handle) vTaskResume(fw_update_task_handle);
@@ -236,18 +253,20 @@ void app_main() {
         ESP_LOGW(TAG, "no Wifi login data");
     }
 
-	while (1);
+//	while (1);
 
 	// create the system tasks to be executed
     xTaskCreate(&enter_console_task, "console", 4096, NULL, 7, &console_handle);
 
 	xTaskCreate(&c8y_task, "c8y", 8192, NULL, 6, &c8y_handle);
+	xTaskCreate(&niomon_task, "niomon", 8192, NULL, 6, &niomon_handle);
 
 	xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
 	xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
 	xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);
 
-    ESP_LOGI(TAG, "all tasks created");
+
+	ESP_LOGI(TAG, "all tasks created");
 
     while (1) vTaskSuspend(NULL);
 }

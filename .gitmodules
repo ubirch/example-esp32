@@ -7,9 +7,6 @@
 [submodule "components/ubirch-protocol"]
 	path = components/ubirch-protocol
 	url = https://github.com/ubirch/ubirch-protocol.git
-[submodule "components/arduino-esp32"]
-	path = components/arduino-esp32
-	url = https://github.com/ubirch/arduino-esp32
 [submodule "components/ubirch-esp32-networking"]
 	path = components/ubirch-esp32-networking
 	url = https://github.com/ubirch/ubirch-esp32-networking
@@ -28,3 +25,6 @@
 [submodule "components/ubirch-esp32-key-storage"]
 	path = components/ubirch-esp32-key-storage
 	url = https://github.com/ubirch/ubirch-esp32-key-storage.git
+[submodule "components/arduino-esp32"]
+	path = components/arduino-esp32
+	url = https://github.com/ubirch/arduino-esp32

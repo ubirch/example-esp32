@@ -1,6 +1,3 @@
-[submodule "components/ubirch-mbed-msgpack"]
-	path = components/ubirch-mbed-msgpack
-	url = https://github.com/ubirch/ubirch-mbed-msgpack
 [submodule "components/ubirch-mbed-nacl-cm0"]
 	path = components/ubirch-mbed-nacl-cm0
 	url = https://github.com/ubirch/ubirch-mbed-nacl-cm0
@@ -28,3 +25,6 @@
 [submodule "components/ubirch-esp32-key-storage"]
 	path = components/ubirch-esp32-key-storage
 	url = https://github.com/ubirch/ubirch-esp32-key-storage.git
+[submodule "components/msgpack-c"]
+	path = components/msgpack-c
+	url = https://github.com/ubirch/msgpack-c.git

@@ -20,12 +20,15 @@ endif ()
 message(STATUS "IDF_PATH: ${IDF_PATH}")
 
 # add some necessary defnitions
-add_definitions(-DRANDOMBYTES_DEFAULT_IMPLEMENTATION)
+add_definitions(
+        -DRANDOMBYTES_DEFAULT_IMPLEMENTATION
+        -DMSGPACK_ENDIAN_LITTLE_BYTE
+    )
 
 set(EXCLUDE_COMPONENTS libsodium)
 
 # set the components local to our project
-set(PROJECT_COMPONENTS ubirch-mbed-msgpack ubirch-mbed-nacl-cm0 ubirch-protocol)
+set(PROJECT_COMPONENTS msgpack-c ubirch-mbed-nacl-cm0 ubirch-protocol)
 # go through the list of components and link or copy the CMakeLists.txt if necessary
 foreach (C_DIR ${PROJECT_COMPONENTS})
     if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/CMakeLists.txt")

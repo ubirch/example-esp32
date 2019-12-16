@@ -31,7 +31,7 @@
 #include <response.h>
 #include <esp_log.h>
 #include <esp32-hal-adc.h>
-#include <esp32-temp.h>
+//#include <esp32-temp.h>
 #include <ubirch_protocol.h>
 #include <ubirch_ed25519.h>
 #include "sensor.h"
@@ -51,7 +51,7 @@ void response_handler(const struct msgpack_object_kv *entry) {
     if (match(entry, "i", MSGPACK_OBJECT_POSITIVE_INTEGER)) {
         interval = (unsigned int) (entry->val.via.u64);
     } else {
-        ESP_LOGW(__func__, "unknown configuration received: %.*s", entry->key.via.raw.size, entry->key.via.raw.ptr);
+        ESP_LOGW(__func__, "unknown configuration received: %.*s", entry->key.via.str.size, entry->key.via.str.ptr);
     }
 }
 
@@ -92,7 +92,7 @@ void sensor_setup() {
     if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
 
     int f_hall = hallRead();
-    float f_temperature = temperatureReadFixed();
+    float f_temperature = temperatureRead();
     ESP_LOGI(__func__, "Hall Sensor = %d ", f_hall);
     ESP_LOGI(__func__, "Temp Sensor = %f", f_temperature);
 

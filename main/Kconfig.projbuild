@@ -17,5 +17,11 @@ config UBIRCH_DEFAULT_INTERVAL
 	default 30000
 	help
 		The default measuring interval.
-		
+
+config UBIRCH_AUTH
+	string "ubirch authentication string"
+	default "passwort-1234-lol"
+	help
+		The passwort for authentication at the ubirch backend.
+
 endmenu

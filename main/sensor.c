@@ -69,7 +69,7 @@ static esp_err_t send_message(float temperature, float humidity) {
     int32_t values[2] = {(int32_t) (temperature * 100), (int32_t) (humidity * 100)};
     ubirch_message(upp, values, sizeof(values) / sizeof(values[0]));
 
-    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, upp->data, upp->size, unpacker);
+    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, upp->uuid, upp->data, upp->size, unpacker);
     ubirch_parse_response(unpacker, response_handler);
 
     ubirch_protocol_free(upp);

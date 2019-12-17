@@ -2,7 +2,7 @@ menu "UBIRCH Application"
 
 config UBIRCH_BACKEND_DATA_URL
     string "ubirch-protocol data URL"
-    default "https://api.ubirch.dev.ubirch.com/api/avatarService/v1/device/update/mpack"
+    default "https://niomon.dev.ubirch.com"
     help
         The URL to send ubirch protocol messages to.
 

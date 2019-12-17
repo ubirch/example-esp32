@@ -32,6 +32,8 @@
 #include <esp_log.h>
 #include <esp32-hal-adc.h>
 //#include <esp32-temp.h>
+#include <ubirch_protocol.h>
+#include <ubirch_ed25519.h>
 #include "sensor.h"
 
 #define BLUE_LED GPIO_NUM_2
@@ -60,17 +62,18 @@ void response_handler(const struct msgpack_object_kv *entry) {
  * @return ESP_OK or an error code
  */
 static esp_err_t send_message(float temperature, float humidity) {
-    msgpack_sbuffer *sbuf = msgpack_sbuffer_new(); //!< send buffer
+    // create a ubirch protocol context
+    ubirch_protocol *upp = ubirch_protocol_new(UUID, ed25519_sign); //!< send buffer
     msgpack_unpacker *unpacker = msgpack_unpacker_new(128); //!< receive unpacker
 
     int32_t values[2] = {(int32_t) (temperature * 100), (int32_t) (humidity * 100)};
-    ubirch_message(sbuf, UUID, values, sizeof(values) / sizeof(values[0]));
+    ubirch_message(upp, values, sizeof(values) / sizeof(values[0]));
 
-    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, UUID, sbuf->data, sbuf->size, unpacker);
+    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, upp->uuid, upp->data, upp->size, unpacker);
     ubirch_parse_response(unpacker, response_handler);
 
+    ubirch_protocol_free(upp);
     msgpack_unpacker_free(unpacker);
-    msgpack_sbuffer_free(sbuf);
 
     return ESP_OK;
 }

@@ -18,6 +18,7 @@ set(COMPONENT_REQUIRES
         ubirch-esp32-api-http
         ubirch-esp32-key-storage
         nvs_flash
+        decke
         )
 
 register_component()

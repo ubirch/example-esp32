@@ -28,7 +28,7 @@ add_definitions(
 set(EXCLUDE_COMPONENTS libsodium)
 
 # set the components local to our project
-set(PROJECT_COMPONENTS msgpack-c ubirch-mbed-nacl-cm0 ubirch-protocol)
+set(PROJECT_COMPONENTS msgpack-c ubirch-mbed-nacl-cm0 ubirch-protocol decke)
 # go through the list of components and link or copy the CMakeLists.txt if necessary
 foreach (C_DIR ${PROJECT_COMPONENTS})
     if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/${C_DIR}/CMakeLists.txt")

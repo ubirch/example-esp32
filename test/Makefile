@@ -15,3 +15,4 @@ EXTRA_COMPONENT_DIRS := $(realpath ../components)
 TEST_COMPONENTS ?= decke
 
 include $(IDF_PATH)/make/project.mk
+

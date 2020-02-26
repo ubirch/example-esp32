@@ -16,3 +16,4 @@ set(COMPONENT_REQUIRES unity)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(main_test)
+

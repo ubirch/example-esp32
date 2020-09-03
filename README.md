@@ -138,10 +138,11 @@ or if you are working with Clion, from the `cmake-build-debug` directory:
 ```bash
 make menuconfig
 ```
-Got to the Category `UBIRCH` to setup the URL for the firmware update
+Go to the Category `UBIRCH` to setup the URL for the firmware update
 and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
 the key server URL and to adjust the measuring interval.
 
+> The entry `ubirch authentication string` only contains a mock authentication. This has to be changed to your actual authentication string, but therefore the device must be registered in the ubirch backend, see [Register your device](#register-your-device-in-the-backend)
 
 ## Serial Interface
 
@@ -200,7 +201,13 @@ Public key: 89088729D730C1DBE9E3392B85ABF562EBC51580A5DAC7B819DC7D368EE3CCF4
 Wifi SSID : YOUR-WIFI-SSID
 Current time: 10.12.2018 14:29:49
 ```
-Copy the UUID and register the device.
+Copy the UUID and register the device in the [Ubirch Console Web Interface](https://console.prod.ubirch.com/).
+
+> After the registration, copy the `password` from the `apiConfig` and
+ now go back to the [Configuration](#configuration) and enter your password string into `ubirch authentication string`. 
+
+**Then recompile and run the code.**
+
 
 ## Basic functionality of the example
 

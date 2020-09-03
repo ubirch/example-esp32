@@ -59,7 +59,7 @@ git clone --recursive https://github.com/ubirch/example-esp32.git
 you can get the submodules with the following commands:
 
 ```bash
-cd example-esp && \
+cd example-esp32 && \
 git submodule update --init --recursive
 ```
 
@@ -70,7 +70,7 @@ Now the structure on your machine should look like this:
 |..
 |-- xtensa-toolchain
 |..
-|-- example-esp
+|-- example-esp32
         |-- components
                 |-- arduino-esp
                 |-- ubirch-esp32-api-http

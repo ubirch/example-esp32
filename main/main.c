@@ -22,7 +22,7 @@
  * ```
  */
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+//#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
@@ -61,8 +61,8 @@ static void main_task(void *pvParameters) {
     bool keys_registered = false;
     bool force_fw_update = false;
     EventBits_t event_bits;
-    for (;;) {
-        event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
+	for (;;) {
+	    event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
                                          false, false, portMAX_DELAY);
         //
         if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
@@ -99,8 +99,7 @@ static void main_task(void *pvParameters) {
  */
 static void update_time_task(void __unused *pvParameter) {
     EventBits_t event_bits;
-
-    for (;;) {
+	for (;;) {
         event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
                                          false, false, portMAX_DELAY);
         if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
@@ -116,7 +115,7 @@ static void update_time_task(void __unused *pvParameter) {
  */
 static void enter_console_task(void *pvParameter) {
     char c;
-    for (;;) {
+	for (;;) {
         c = (char) fgetc(stdin);
         printf("%02x\r", c);
         if ((c == 0x03) || (c == 0x15)) {  //0x03 = Ctrl + C      0x15 = Ctrl + U
@@ -188,7 +187,7 @@ void app_main() {
     if (err == ESP_OK) {
         ESP_LOGD(TAG, "SSID: %.*s", wifi.ssid_length, wifi.ssid);
         kv_load("wifi_data", "wifi_pwd", (void **) &wifi.pwd, &wifi.pwd_length);
-        ESP_LOGD(TAG, "PASS: %.*s", wifi.pwd_length, wifi.pwd);
+        //ESP_LOGD(TAG, "PASS: %.*s", wifi.pwd_length, wifi.pwd);
         if (wifi_join(wifi, 5000) == ESP_OK) {
             ESP_LOGI(TAG, "established");
         } else { // no connection possible

@@ -36,6 +36,7 @@
 #include <ubirch_ed25519.h>
 #include "sensor.h"
 
+
 #define BLUE_LED GPIO_NUM_2
 #define BOOT_BUTTON GPIO_NUM_0
 
@@ -67,6 +68,7 @@ static esp_err_t send_message(float temperature, float humidity) {
     msgpack_unpacker *unpacker = msgpack_unpacker_new(128); //!< receive unpacker
 
     int32_t values[2] = {(int32_t) (temperature * 100), (int32_t) (humidity * 100)};
+
     ubirch_message(upp, values, sizeof(values) / sizeof(values[0]));
 
     ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, upp->uuid, upp->data, upp->size, unpacker);

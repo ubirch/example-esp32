@@ -183,6 +183,8 @@ void app_main() {
 
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
+    wifi.ssid_length = 0;
+    wifi.pwd_length = 0;
 
     err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
     if (err == ESP_OK) {

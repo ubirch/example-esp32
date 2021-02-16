@@ -60,6 +60,10 @@ void response_handler(const struct msgpack_object_kv *entry) {
     }
 }
 
+void bin_response_handler(const void* data, size_t len) {
+	ESP_LOG_BUFFER_HEXDUMP("response UPP payload", data, len, ESP_LOG_INFO);
+}
+
 static int ed25519_verify_backend_respeonse(const unsigned char *data,
         size_t len, const unsigned char signature[UBIRCH_PROTOCOL_SIGN_SIZE]) {
     return ed25519_verify_key(data, len, signature, server_pub_key);

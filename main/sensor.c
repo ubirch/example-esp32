@@ -37,6 +37,7 @@
 #include <ubirch_protocol.h>
 #include <ubirch_ed25519.h>
 #include "sensor.h"
+#include "key_handling.h"
 
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
@@ -57,6 +58,11 @@ void response_handler(const struct msgpack_object_kv *entry) {
     } else {
         ESP_LOGW(__func__, "unknown configuration received: %.*s", entry->key.via.str.size, entry->key.via.str.ptr);
     }
+}
+
+static int ed25519_verify_backend_respeonse(const unsigned char *data,
+        size_t len, const unsigned char signature[UBIRCH_PROTOCOL_SIGN_SIZE]) {
+    return ed25519_verify_key(data, len, signature, server_pub_key);
 }
 
 /*!

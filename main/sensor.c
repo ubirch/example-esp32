@@ -85,9 +85,40 @@ static esp_err_t send_message(float temperature, float humidity) {
     ubirch_message(upp, values, sizeof(values) / sizeof(values[0]));
 	ESP_LOGI("UBIRCH SEND", " to %s , len: %d",CONFIG_UBIRCH_BACKEND_DATA_URL, upp->size);
 	ESP_LOG_BUFFER_HEXDUMP("UPP", upp->data,upp->size, ESP_LOG_DEBUG);
-    ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, upp->uuid, upp->data, upp->size, unpacker);
-    ubirch_parse_response(unpacker, response_handler);
-
+    int http_status;
+    switch (ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, UUID, upp->data, upp->size,
+            &http_status, unpacker, ed25519_verify_backend_respeonse))
+    {
+        case UBIRCH_SEND_OK:
+            switch (http_status) {
+                case 200:
+                    ESP_LOGI("UBIRCH SEND", " http status of response: %d", http_status);
+                    break;
+                case 400:
+                case 401:
+                case 403:
+                case 404:
+                case 405:
+                case 409:
+                case 500:
+                    ESP_LOGW("UBIRCH SEND", " http status of response: %d", http_status);
+                    break;
+                default:
+                    ESP_LOGW("UBIRCH SEND", " enexpected http status: %d", http_status);
+                    break;
+            }
+            // as the response was verified we parse it
+            // TODO: do we want this in all http-status-cases?
+            if (ubirch_parse_backend_response(unpacker, bin_response_handler)
+                    != UBIRCH_ESP32_API_HTTP_RESPONSE_SUCCESS) {
+                ESP_LOGW(__func__, "verified response broken");
+            }
+            break;
+        case UBIRCH_SEND_VERIFICATION_FAILED:
+            break;
+        default:
+            break;
+    }
     ubirch_protocol_free(upp);
     msgpack_unpacker_free(unpacker);
 

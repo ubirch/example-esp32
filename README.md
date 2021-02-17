@@ -3,8 +3,7 @@
 # How To implement the ubirch protocol on the ESP32
 
 1. [Required packages](#required-packages)
-    1. [xtensa toolchain](#xtensa-toolchain)
-    1. [ESP32-IDF](#esp32-idf)
+    1. [ESP32-IDF and xtensa toolchain](#esp32-idf-and-xtensa-toolchain)
     1. [example project ESP32](#example-project-esp32)
         1. [The submodules](#the-submodules)
 1. [Build your application](#build-your-application)
@@ -24,27 +23,22 @@ The presented ubirch-protocol implementation on the ESP32 platform is
 based on the following prerequisites. So the first steps are to download
 and setup the necessary tools and software packages.
 
-
-### xtensa toolchain
-
-The xtensa toolchain provides the necessary compiler to build the firmware and applcation for the ESP32.
-Follow the [linux-guide](https://dl.espressif.com/doc/esp-idf/latest/get-started/linux-setup.html)
-to install the toolchain on your linux machine.
-
-### ESP32-IDF
+### ESP32-IDF and xtensa toolchain
 
 The ESP32 runs on a freeRTOS operating system, customized for the espressif Controllers.
 Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com/espressif/esp-idf))
 has to be downloaded and set up.
 
 ```[bash]
-git clone https://github.com/espressif/esp-idf.git
+git clone -b v4.2 --recursive https://github.com/espressif/esp-idf.git
 ```
 
-Use the [guide](https://docs.espressif.com/projects/esp-idf/en/latest/) to install and configure
-the ESP-IDF.
+Make sure you have esp-idf release `v4.2`. The installation of the xtensa toolchain is done
+via the `install.{sh, bat}` script and the configuration of your environment by `source`ing
+the `export.{sh, bat, ps1, fish}` within the esp-idf.  For detailed instructions follow the
+[guide](https://docs.espressif.com/projects/esp-idf/en/v4.2/esp32/get-started/index.html#step-2-get-esp-idf).
 
-> **Checkout the last stable release of the `ESP-IDF`. The example was tested on `release/V3.2`**
+> **The example was tested on esp-idf release `v4.2`.**
 
 ### example project ESP32
 
@@ -72,7 +66,6 @@ Now the structure on your machine should look like this:
 |..
 |-- example-esp32
         |-- components
-                |-- arduino-esp
                 |-- ubirch-esp32-api-http
                 |-- ubirch-esp32-console
                 |-- ubirch-esp32-networking
@@ -90,10 +83,9 @@ For the documentation of the herein used submodules, go to the repositories, or 
 
 This list provides the links to the submodule repositories:
 
-- [ubirch-mbed-msgpack](https://github.com/ubirch/ubirch-mbed-msgpack)
+- [ubirch-msgpack](https://github.com/ubirch/msgpack-c)
 - [ubirch-mbed-nacl-cm0](https://github.com/ubirch/ubirch-mbed-nacl-cm0)
 - [ubirch-protocol](https://github.com/ubirch/ubirch-protocol.git)
-- [arduino-esp32](https://github.com/ubirch/arduino-esp32)
 - [ubirch-esp32-networking](https://github.com/ubirch/ubirch-esp32-networking)
 - [ubirch-esp32-console](https://github.com/ubirch/ubirch-esp32-console)
 - [ubirch-esp32-storage](https://github.com/ubirch/ubirch-esp32-storage)

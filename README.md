@@ -16,6 +16,7 @@
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
 1. [Basic functionality of the example](#aasic-functionality-of-the-example)
 1. [Ubirch specific functionality](#ubirch-specific-functionality)
+1. [Build and run tests](#build-and-run-tests)
 
 ## Required packages
 
@@ -227,4 +228,23 @@ Copy the UUID and register the device in the [Ubirch Console Web Interface](http
 - evaluate the message response, see [ubirch_parse_response()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/response.h#L42)
 - react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
 
+## Build and run tests
 
+To build and run the test runner, that controls tests that are implemented in the components, you need to have the esp-idf as well as the xtensa toolchain installed as described above.
+Similar to the [build](#build) section run the following commands to prepare the build (note that you need to change to the `test` directory in the project root):
+
+```bash
+$ cd test
+$ mkdir build
+$ cd build
+$ cmake ..
+```
+
+Then run ``` $ make``` and ``` $ make flash``` to build and flash your device. To get the output of the tests use the serial interface as described above.
+The testrunner will immediately run the tests after flashing, to get all the outputs start your serial monitor right after flashing, e.g.
+
+```bash
+make -j flash && miniterm.py /dev/ttyUSB0 115200 --raw
+```
+
+You can re-run single tests by using the interactive test menu which is started right after running the tests.

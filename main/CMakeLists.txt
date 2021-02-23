@@ -7,7 +7,6 @@ set(COMPONENT_SRCS
 set(COMPONENT_ADD_INCLUDEDIRS "${CMAKE_CURRENT_LIST_DIR}")
 
 set(COMPONENT_REQUIRES
-        arduino-esp32
         ubirch-esp32-console
         ubirch-esp32-networking
         ubirch-esp32-ota

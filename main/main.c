@@ -62,10 +62,10 @@ static void main_task(void *pvParameters) {
     bool force_fw_update = false;
     EventBits_t event_bits;
 	for (;;) {
-	    event_bits = xEventGroupWaitBits(network_event_group, NETWORK_STA_READY | NETWORK_ETH_READY,
+	    event_bits = xEventGroupWaitBits(network_event_group, WIFI_CONNECTED_BIT | NETWORK_ETH_READY,
                                          false, false, portMAX_DELAY);
         //
-        if (event_bits & (NETWORK_STA_READY | NETWORK_ETH_READY)) {
+        if (event_bits & (WIFI_CONNECTED_BIT | NETWORK_ETH_READY)) {
             // after the device is ready, first try a firmwate update
             if (!force_fw_update) {
                 ubirch_firmware_update();
@@ -101,9 +101,9 @@ static void main_task(void *pvParameters) {
 static void update_time_task(void __unused *pvParameter) {
     EventBits_t event_bits;
 	for (;;) {
-        event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | NETWORK_STA_READY),
+        event_bits = xEventGroupWaitBits(network_event_group, (NETWORK_ETH_READY | WIFI_CONNECTED_BIT),
                                          false, false, portMAX_DELAY);
-        if (event_bits & (NETWORK_ETH_READY | NETWORK_STA_READY)) {
+        if (event_bits & (NETWORK_ETH_READY | WIFI_CONNECTED_BIT)) {
             sntp_update();
         }
         vTaskDelay(21600000);  // delay this task for the next 6 hours
@@ -183,6 +183,10 @@ void app_main() {
 
     ESP_LOGI(TAG, "connecting to wifi");
     struct Wifi_login wifi;
+    wifi.ssid = NULL;
+    wifi.ssid_length = 0;
+    wifi.pwd = NULL;
+    wifi.pwd_length = 0;
 
     err = kv_load("wifi_data", "wifi_ssid", (void **) &wifi.ssid, &wifi.ssid_length);
     if (err == ESP_OK) {

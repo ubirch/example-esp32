@@ -25,12 +25,14 @@
  */
 
 #include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <msgpack.h>
 #include <message.h>
 #include <ubirch_api.h>
 #include <response.h>
 #include <esp_log.h>
-#include <esp32-hal-adc.h>
+// #include <esp32-hal-adc.h>
+#include "driver/gpio.h"
 //#include <esp32-temp.h>
 #include <ubirch_protocol.h>
 #include <ubirch_ed25519.h>
@@ -95,8 +97,8 @@ void sensor_setup() {
      // let the LED blink
     if (interval < 1000) gpio_set_level(BLUE_LED, 0); else gpio_set_level(BLUE_LED, 1);
 
-    int f_hall = hallRead();
-    float f_temperature = temperatureRead();
+    int f_hall = 12; //hallRead();
+    float f_temperature = 36.5;//temperatureRead();
     ESP_LOGI(__func__, "Hall Sensor = %d ", f_hall);
     ESP_LOGI(__func__, "Temp Sensor = %f", f_temperature);
 

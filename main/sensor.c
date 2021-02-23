@@ -60,11 +60,20 @@ void response_handler(const struct msgpack_object_kv *entry) {
     }
 }
 
+/*!
+ * This function handles a binary responses from the backend.
+ * @param data void pointer to the received binary payload
+ * @param len length of received data
+ */
 void bin_response_handler(const void* data, size_t len) {
-	ESP_LOG_BUFFER_HEXDUMP("response UPP payload", data, len, ESP_LOG_INFO);
+    ESP_LOG_BUFFER_HEXDUMP("response UPP payload", data, len, ESP_LOG_INFO);
 }
 
-static int ed25519_verify_backend_respeonse(const unsigned char *data,
+/*!
+ * Verifier function of type ubirch_protocol_check.
+ * Uses ed25519_verify_key and server_pub_key to verify signature.
+ */
+static int ed25519_verify_backend_response(const unsigned char *data,
         size_t len, const unsigned char signature[UBIRCH_PROTOCOL_SIGN_SIZE]) {
     return ed25519_verify_key(data, len, signature, server_pub_key);
 }
@@ -83,16 +92,20 @@ static esp_err_t send_message(float temperature, float humidity) {
     int32_t values[2] = {(int32_t) (temperature * 100), (int32_t) (humidity * 100)};
 
     ubirch_message(upp, values, sizeof(values) / sizeof(values[0]));
-	ESP_LOGI("UBIRCH SEND", " to %s , len: %d",CONFIG_UBIRCH_BACKEND_DATA_URL, upp->size);
-	ESP_LOG_BUFFER_HEXDUMP("UPP", upp->data,upp->size, ESP_LOG_DEBUG);
+    ESP_LOGI("UBIRCH SEND", " to %s , len: %d",CONFIG_UBIRCH_BACKEND_DATA_URL, upp->size);
+    ESP_LOG_BUFFER_HEXDUMP("UPP", upp->data,upp->size, ESP_LOG_DEBUG);
     int http_status;
     switch (ubirch_send(CONFIG_UBIRCH_BACKEND_DATA_URL, UUID, upp->data, upp->size,
-            &http_status, unpacker, ed25519_verify_backend_respeonse))
+            &http_status, unpacker, ed25519_verify_backend_response))
     {
         case UBIRCH_SEND_OK:
             switch (http_status) {
                 case 200:
                     ESP_LOGI("UBIRCH SEND", " http status of response: %d", http_status);
+                    if (ubirch_parse_backend_response(unpacker, bin_response_handler)
+                            != UBIRCH_ESP32_API_HTTP_RESPONSE_SUCCESS) {
+                        ESP_LOGW("UBIRCH SEND", " verified response broken");
+                    }
                     break;
                 case 400:
                 case 401:
@@ -108,15 +121,12 @@ static esp_err_t send_message(float temperature, float humidity) {
                     break;
             }
             // as the response was verified we parse it
-            // TODO: do we want this in all http-status-cases?
-            if (ubirch_parse_backend_response(unpacker, bin_response_handler)
-                    != UBIRCH_ESP32_API_HTTP_RESPONSE_SUCCESS) {
-                ESP_LOGW(__func__, "verified response broken");
-            }
             break;
         case UBIRCH_SEND_VERIFICATION_FAILED:
+            ESP_LOGW("UBIRCH SEND", " response signature not verifiable, http status of response: %d", http_status);
             break;
         default:
+            ESP_LOGE("UBIRCH_SEND", " ubirch_send failed");
             break;
     }
     ubirch_protocol_free(upp);

@@ -24,4 +24,10 @@ config UBIRCH_AUTH
 	help
 		The passwort for authentication at the ubirch backend.
 
+config UBIRCH_BACKEND_PUBLIC_KEY
+    string "ubirch backend public key"
+    default "74BIrQbAKFrwF3AJOBgwxGzsAl0B2GCF51pPAEHC5pA="
+    help
+        The backend public key.
+
 endmenu

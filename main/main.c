@@ -88,7 +88,8 @@ static void main_task(void *pvParameters) {
             // APPLY  YOUR APPLICATION SPECIFIC CODE HERE
             //
             sensor_loop();
-	        ESP_LOGI("HEAP","%d",esp_get_minimum_free_heap_size());
+	        ESP_LOGI("free HEAP","%d",esp_get_free_heap_size());
+	        ESP_LOGI("minimum free HEAP","%d",esp_get_minimum_free_heap_size());
         }
     }
 }

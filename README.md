@@ -31,15 +31,15 @@ Therefore, the Espressif IoT Development Framework ([ESP-IDF](https://github.com
 has to be downloaded and set up.
 
 ```[bash]
-git clone -b v4.2 --recursive https://github.com/espressif/esp-idf.git
+git clone -b v4.3 --recursive https://github.com/espressif/esp-idf.git
 ```
 
-Make sure you have esp-idf release `v4.2`. The installation of the xtensa toolchain is done
+Make sure you have esp-idf release `v4.3`. The installation of the xtensa toolchain is done
 via the `install.{sh, bat}` script and the configuration of your environment by `source`ing
 the `export.{sh, bat, ps1, fish}` within the esp-idf.  For detailed instructions follow the
 [guide](https://docs.espressif.com/projects/esp-idf/en/v4.2/esp32/get-started/index.html#step-2-get-esp-idf).
 
-> **The example was tested on esp-idf release `v4.2`.**
+> **The example was tested on esp-idf release `v4.3`.**
 
 ### example project ESP32
 
@@ -191,8 +191,9 @@ The corresponding output may look like this:
 UBIRCH device status:
 Hardware-Device-ID: XXXXXXXX-XXXX-1223-3445-566778899AAB
 Public key: 89088729D730C1DBE9E3392B85ABF562EBC51580A5DAC7B819DC7D368EE3CCF4
+Backend public key: 74BIrQbAKFrwF3AJOBgwxGzsAl0B2GCF51pPAEHC5pA=
 Wifi SSID : YOUR-WIFI-SSID
-Current time: 10.12.2018 14:29:49
+Current time: 28.07.2021 13:19:49
 ```
 Copy the UUID and register the device in the [Ubirch Console Web Interface](https://console.prod.ubirch.com/).
 

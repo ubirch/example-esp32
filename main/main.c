@@ -212,8 +212,6 @@ static esp_err_t init_system() {
     init_console();
     init_wifi();
 
-    //set_hw_ID();
-
     sensor_setup();
 
     return err;

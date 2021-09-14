@@ -36,8 +36,9 @@
 #include <time.h>
 
 #include "storage.h"
+#include "keys.h"
+#include "id_handling.h"
 #include "key_handling.h"
-#include "util.h"
 #include "sensor.h"
 
 char *TAG = "example-esp32";
@@ -58,7 +59,33 @@ static TaskHandle_t console_handle = NULL;
  * @param pvParameters are currently not used, but part of the task declaration.
  */
 static void main_task(void *pvParameters) {
-    bool keys_loaded = false;
+    // load backend key
+    if (load_backend_key() != ESP_OK) {
+        ESP_LOGW(TAG, "unable to load backend key");
+    }
+
+    // use ubirch id manager to create ID
+    // try to load from non volatile memory
+    const char* short_name = "default_id";
+    if (ubirch_id_context_load(short_name) != ESP_OK) {
+        ESP_LOGI(TAG, "add new default_id");
+        // add new context id
+        ubirch_id_context_add(short_name);
+        // set uuid
+        unsigned char uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
+                                0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0xFF, 0xFF};
+        esp_efuse_mac_get_default(uuid);
+        esp_base_mac_addr_set(uuid);
+        ubirch_uuid_set(uuid, sizeof(uuid));
+        // set initial value for previous signature
+        unsigned char prev_sig[64] = { 0 };
+        ubirch_previous_signature_set(prev_sig, sizeof(prev_sig));
+
+        if (ubirch_id_context_store() != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to store basic ID context");
+        }
+    }
+
     bool force_fw_update = false;
     EventBits_t event_bits;
 	for (;;) {
@@ -71,38 +98,49 @@ static void main_task(void *pvParameters) {
                 ubirch_firmware_update();
                 force_fw_update = true;
             }
-
-            if (!keys_loaded) {
+            if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_CREATED)
+                    || !ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_REGISTERED)) {
+                // check that we have current time before trying to generate/register keys
                 time_t now = 0;
                 struct tm timeinfo = {0};
                 time(&now);
                 localtime_r(&now, &timeinfo);
-                if (timeinfo.tm_year >= (2017 - 1900)) {
-                    switch (check_key_status()) {
-                        case KEY_STATUS_OK:
-                            keys_loaded = true;
-                            break;
-                        case KEY_STATUS_NO_KEYS:
-                            create_keys();
-                            __attribute__ ((fallthrough));
-                        case KEY_STATUS_NOT_REGISTERED:
-                            register_keys();
-                            break;
-                        case KEY_STATUS_UPDATE_NEEDED:
-                            update_keys();
-                            break;
-                        default:
-                            ESP_LOGW(TAG, "failed to check key status");
-                            break;
-                    }
+                // update time
+                if (timeinfo.tm_year < (2017 - 1900)) {
+                    vTaskDelay(pdMS_TO_TICKS(2000));
+                    continue;
+                }
+            }
+
+            if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_CREATED)) {
+                create_keys();
+                ubirch_id_state_set(UBIRCH_ID_STATE_KEYS_CREATED, true);
+                if (ubirch_id_context_store() != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to store ID context after key creation");
+                }
+            }
+            if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_REGISTERED)) {
+                ESP_LOGI(TAG, "call register_keys!");
+                if (register_keys() != ESP_OK) {
+                    ESP_LOGW(TAG, "failed to register keys, try later");
+                    // FIXME: is delay the best choice?
+                    vTaskDelay(pdMS_TO_TICKS(2000));
+                    continue;
+                }
+                if (ubirch_id_context_store() != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to store ID context after key registration");
                 }
             }
             //
             // APPLY  YOUR APPLICATION SPECIFIC CODE HERE
             //
-            sensor_loop();
-	        ESP_LOGI("free HEAP","%d",esp_get_free_heap_size());
-	        ESP_LOGI("minimum free HEAP","%d",esp_get_minimum_free_heap_size());
+            if (ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_REGISTERED)) {
+                sensor_loop();
+                ESP_LOGI("free HEAP","%d",esp_get_free_heap_size());
+                ESP_LOGI("minimum free HEAP","%d",esp_get_minimum_free_heap_size());
+            }
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(2000));
         }
     }
 }
@@ -174,7 +212,7 @@ static esp_err_t init_system() {
     init_console();
     init_wifi();
 
-    set_hw_ID();
+    //set_hw_ID();
 
     sensor_setup();
 

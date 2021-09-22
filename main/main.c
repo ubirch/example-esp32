@@ -66,6 +66,7 @@ static void main_task(void *pvParameters) {
 
     // use ubirch id manager to create ID
     // try to load from non volatile memory
+#ifndef CONFIG_UBIRCH_MULTIPLE_IDS
     const char* short_name = "default_id";
     if (ubirch_id_context_load(short_name) != ESP_OK) {
         ESP_LOGI(TAG, "add new default_id");
@@ -85,10 +86,27 @@ static void main_task(void *pvParameters) {
             ESP_LOGE(TAG, "Failed to store basic ID context");
         }
     }
+#endif
 
     bool force_fw_update = false;
     EventBits_t event_bits;
+#ifdef CONFIG_UBIRCH_MULTIPLE_IDS
+#define NUMBER_OF_IDS (2)
+    // short names must be specified in nvs flash memory before
+    char ids[NUMBER_OF_IDS][4] = {"foo", "bar"};
+    size_t id_index = 0;
+#endif
 	for (;;) {
+#ifdef CONFIG_UBIRCH_MULTIPLE_IDS
+        // switch ids
+        ESP_LOGI(TAG, "Loading ID context for %s", ids[id_index]);
+        if (ubirch_id_context_load(ids[id_index]) != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to load ID context");
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            continue;
+        }
+        id_index = (id_index + 1) % NUMBER_OF_IDS;
+#endif
 	    event_bits = xEventGroupWaitBits(network_event_group, WIFI_CONNECTED_BIT | NETWORK_ETH_READY,
                                          false, false, portMAX_DELAY);
         //

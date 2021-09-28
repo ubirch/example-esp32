@@ -108,11 +108,6 @@ $ cd build
 $ cmake ..
 ```
 
-> Before flashing the first time, please run `make menuconfig` once and select *Partition Table" and set it to
-> `Partition Table (Factory app, two OTA definitions)`. Exit this sub menu and select *Serial Flasher config*
-> and set the `Flash size (4 MB)`. <br/>
-> **Make sure to *Save* the settings and *Exit* the configuration.**
-
 To build the application type:
 ``` $ make all```
 or

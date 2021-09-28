@@ -6,8 +6,13 @@
     1. [ESP32-IDF and xtensa toolchain](#esp32-idf-and-xtensa-toolchain)
     1. [example project ESP32](#example-project-esp32)
         1. [The submodules](#the-submodules)
+1. [Pre-build configuration](#pre-build-configuration)
 1. [Build your application](#build-your-application)
 1. [Configuration](#configuration)
+1. [Device configuration](#device-configuration)
+    1. [Configuration of a single ubirch ID with generated uuid](#configuration-of-a-single-ubirch-id-with-generated-uuid)
+    1. [Configuration of single ubirch ID with pre-generated uuid](#configuration-of-single-ubirch-id-with-pre-generated-uuid)
+    1. [Configuration of multiple identities with nvs-flash tools](#configuration-of-multiple-identities-with-nvs-flash-tools)
 1. [Serial Interface](#serial-interface)
     1. [Tools for Serial Connection](#tools-for-serial-connection)
     1. [Console](#console)
@@ -39,7 +44,7 @@ via the `install.{sh, bat}` script and the configuration of your environment by 
 the `export.{sh, bat, ps1, fish}` within the esp-idf.  For detailed instructions follow the
 [guide](https://docs.espressif.com/projects/esp-idf/en/v4.2/esp32/get-started/index.html#step-2-get-esp-idf).
 
-> **The example was tested on esp-idf release `v4.3`.**
+> **The example was tested on esp-idf release `v4.2` and `v4.3`.**
 
 ### example project ESP32
 
@@ -94,6 +99,18 @@ This list provides the links to the submodule repositories:
 - [ubirch-esp32-ota](https://github.com/ubirch/ubirch-esp32-ota)
 
 
+## Pre-build configuration
+
+The URLs for the data, keys and fimrware updates can be configured by running from the `build` directory,
+or if you are working with Clion, from the `cmake-build-debug` directory:
+```bash
+make menuconfig
+```
+Go to the Category `UBIRCH` to setup the URL for the firmware update
+and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
+the key server URL and to adjust the measuring interval.
+
+
 ## Build your application
 
 To build an application, a cmake installation is required, which
@@ -109,28 +126,115 @@ $ cmake ..
 ```
 
 To build the application type:
-``` $ make all```
+`$ make all`
 or
-``` $ make app```
+`$ make app`
 
 To cleanup the build directory type:
-``` $ make clean```
+`$ make clean`
+
+To make sure you start from a clean device type:
+`$ esptool.py erase_flash`
 
 To flash the device, type:
-``` $ make app-flash```
+`$ make app-flash`
 
-## Configuration
 
-The URLs for the data, keys and fimrware updates can be configured by running from the `build` directory,
-or if you are working with Clion, from the `cmake-build-debug` directory:
-```bash
-make menuconfig
+## Device configuration
+
+### Configuration of a single ubirch ID with generated uuid
+
+After [flashing the firmware](#build-your-application) you can [enter Console mode](#enter-console-mode)
+and use the `status` command to get your devices uuid.
+With this uuid you can [register your device in the Backend](#register-your-device-in-the-backend)
+and get the device-password from ubirch-console.
+
+To set the password run
+```[bash]
+update_password <password>
 ```
-Go to the Category `UBIRCH` to setup the URL for the firmware update
-and go to `UBIRCH Application` to setup the URL fot the ubirch-protocol data,
-the key server URL and to adjust the measuring interval.
 
-> The entry `ubirch authentication string` only contains a mock authentication. This has to be changed to your actual authentication string, but therefore the device must be registered in the ubirch backend, see [Register your device](#register-your-device-in-the-backend)
+Join the wifi with
+```[bash]
+join YOUR-WIFI-SSID YOUR-WIFI-PWD
+```
+
+and restart with
+```[bash]
+restart
+```
+
+When the device is connected to the internet it can get a time-update and creates a new key-pair
+which is then registered in the ubirch backend.
+
+
+### Configuration of single ubirch ID with pre-generated uuid
+
+Use `$ uuidgen` to generate a new uuid and [register your device with this uuid in the Backend](#register-your-device-in-the-backend).
+Create a json-file (e.g. `my_device_config.json`) including the following json object with the information from your registered device:
+```json
+{
+  "short_name": "default_id",
+  "uuid": "<uuid>",
+  "password": "<password>"
+}
+```
+
+Note that the `short_name` should be `default_id` if you are using a single ID in this example.
+
+Create the nvs-flash-partition description csv-file and binary-file (for more details compare
+[the esp-idf documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_partition_gen.html)) by running:
+```bash
+$ python create_ubirch_devices.py my_device_config.json
+$ python $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate my_device_config.csv my_device_config.bin 0x3000
+```
+
+Flash the partition to your device:
+```bash
+$ parttool.py write_partition --partition-name=nvs --input my_device_config.bin
+```
+
+[Enter Console mode](#enter-console-mode) to connect to wifi:
+```[bash]
+join YOUR-WIFI-SSID YOUR-WIFI-PWD
+```
+
+When the device is connected to the internet it can get a time-update and creates a new key-pair
+which is then registered in the ubirch backend.
+
+To backup the whole configuration including the key-pair:
+```bash
+$ parttool.py read_partition --partition-name=nvs --output my_device_config_backup.bin
+```
+
+### Configuration of multiple identities with nvs-flash tools
+
+To use multiple ubirch IDs on your device enter menuconfig via `$ make menuconfig`,
+navigate to `Ubirch Application` and set `Enable multiple ids`. 
+
+Follow the same steps as in [the previous section](#configuration-of-single-ubirch-id-with-pre-generated-uuid)
+but register multiple devices and put a list of them in the json-file:
+```json
+[
+  {
+    "short_name": "foo",
+    "uuid": "<uuid-1>",
+    "password": "<password-1>"
+  },
+  {
+    "short_name": "bar",
+    "uuid": "<uuid-2>",
+    "password": "<password-2>"
+  }
+]
+```
+
+Note that the `short_name`s are used to load the IDs from memory, see [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c).
+
+The number of IDs that can be used at once depends on the partition size.
+Each ID needs about 670 byte of memory (including nvs overhead), the backend key
+needs 64 byte (including nvs overhead) and the wifi credentials need space depending on SSID and password length.
+So with in average SSID and password and the minimum nvs partition size of 4096 byte there is space for about 6 IDs.
 
 ## Serial Interface
 

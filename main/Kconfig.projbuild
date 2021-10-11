@@ -12,6 +12,12 @@ config UBIRCH_BACKEND_KEY_SERVER_URL
 	help
 		The key server URL to register public keys.
 
+config UBIRCH_BACKEND_UPDATE_KEY_SERVER_URL
+	string "ubirch key server URL"
+	default "https://key.prod.ubirch.com/api/keyService/v1/pubkey"
+	help
+		The key server URL to update public keys.
+
 config UBIRCH_DEFAULT_INTERVAL
 	int "ubirch sensor measuring interval (ms)"
 	default 30000

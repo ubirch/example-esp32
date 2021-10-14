@@ -58,7 +58,7 @@ static TaskHandle_t console_handle = NULL;
  * @param pvParameters are currently not used, but part of the task declaration.
  */
 static void main_task(void *pvParameters) {
-    bool keys_registered = false;
+    bool keys_loaded = false;
     bool force_fw_update = false;
     EventBits_t event_bits;
 	for (;;) {
@@ -71,17 +71,29 @@ static void main_task(void *pvParameters) {
                 ubirch_firmware_update();
                 force_fw_update = true;
             }
-            if (!keys_registered) {
-                // check that we have current time before trying to generate/register keys
+
+            if (!keys_loaded) {
                 time_t now = 0;
                 struct tm timeinfo = {0};
                 time(&now);
                 localtime_r(&now, &timeinfo);
                 if (timeinfo.tm_year >= (2017 - 1900)) {
-                    // force time update before generating keys
-                    check_key_status();
-                    register_keys();
-                    keys_registered = true;
+                    switch (check_key_status()) {
+                        case KEY_STATUS_OK:
+                            keys_loaded = true;
+                            break;
+                        case KEY_STATUS_NO_KEYS:
+                            create_keys();
+                        case KEY_STATUS_NOT_REGISTERED:
+                            register_keys();
+                            break;
+                        case KEY_STATUS_UPDATE_NEEDED:
+                            update_keys();
+                            break;
+                        default:
+                            ESP_LOGW(TAG, "failed to check key status");
+                            break;
+                    }
                 }
             }
             //

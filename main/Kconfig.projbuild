@@ -36,4 +36,10 @@ config UBIRCH_BACKEND_PUBLIC_KEY
     help
         The backend public key.
 
+config UBIRCH_KEY_LIFETIME_YEARS
+	int "ubirch key lifetime in years"
+	default 1
+	help
+		The default key lifetime.
+
 endmenu

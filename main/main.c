@@ -216,7 +216,7 @@ void app_main() {
     }
 
     // create the system tasks to be executed
-    xTaskCreate(&enter_console_task, "console", 4096, NULL, 7, &console_handle);
+    xTaskCreate(&enter_console_task, "console", 8192, NULL, 7, &console_handle);
     xTaskCreate(&update_time_task, "sntp", 4096, NULL, 4, &net_config_handle);
     xTaskCreate(&ubirch_ota_task, "fw_update", 4096, NULL, 5, &fw_update_task_handle);
     xTaskCreate(&main_task, "main", 8192, NULL, 6, &main_task_handle);

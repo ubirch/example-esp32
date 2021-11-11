@@ -64,9 +64,9 @@ static void main_task(void *pvParameters) {
         ESP_LOGW(TAG, "unable to load backend key");
     }
 
+#ifndef CONFIG_UBIRCH_MULTIPLE_IDS
     // use ubirch id manager to create ID
     // try to load from non volatile memory
-#ifndef CONFIG_UBIRCH_MULTIPLE_IDS
     const char* short_name = "default_id";
     if (ubirch_id_context_load(short_name) != ESP_OK) {
         ESP_LOGI(TAG, "add new default_id");
@@ -88,7 +88,7 @@ static void main_task(void *pvParameters) {
     }
 #endif
 
-    bool force_fw_update = false;
+    bool force_fw_update = true;
     EventBits_t event_bits;
 #ifdef CONFIG_UBIRCH_MULTIPLE_IDS
 #define NUMBER_OF_IDS (2)
@@ -112,10 +112,11 @@ static void main_task(void *pvParameters) {
         //
         if (event_bits & (WIFI_CONNECTED_BIT | NETWORK_ETH_READY)) {
             // after the device is ready, first try a firmwate update
-            if (!force_fw_update) {
+            if (force_fw_update) {
                 ubirch_firmware_update();
-                force_fw_update = true;
+                force_fw_update = false;
             }
+
             if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_CREATED)
                     || !ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_REGISTERED)) {
                 // check that we have current time before trying to generate/register keys
@@ -132,13 +133,12 @@ static void main_task(void *pvParameters) {
 
             if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_CREATED)) {
                 create_keys();
-                ubirch_id_state_set(UBIRCH_ID_STATE_KEYS_CREATED, true);
                 if (ubirch_id_context_store() != ESP_OK) {
                     ESP_LOGE(TAG, "Failed to store ID context after key creation");
                 }
             }
+
             if (!ubirch_id_state_get(UBIRCH_ID_STATE_KEYS_REGISTERED)) {
-                ESP_LOGI(TAG, "call register_keys!");
                 if (register_keys() != ESP_OK) {
                     ESP_LOGW(TAG, "failed to register keys, try later");
                     // FIXME: is delay the best choice?
@@ -149,6 +149,20 @@ static void main_task(void *pvParameters) {
                     ESP_LOGE(TAG, "Failed to store ID context after key registration");
                 }
             }
+
+            time_t next_key_update;
+            if (ubirch_next_key_update_get(&next_key_update) != ESP_OK) {
+                ESP_LOGW(TAG, "Failed to read next key update");
+            }
+            if (next_key_update < time(NULL)) {
+                if (update_keys() != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to update keys");
+                }
+                if (ubirch_id_context_store() != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to store ID context after key update");
+                }
+            }
+
             //
             // APPLY  YOUR APPLICATION SPECIFIC CODE HERE
             //

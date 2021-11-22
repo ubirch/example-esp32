@@ -24,11 +24,11 @@ config UBIRCH_DEFAULT_INTERVAL
 	help
 		The default measuring interval.
 
-config UBIRCH_AUTH
-	string "ubirch authentication string"
-	default "passwort-1234-lol"
-	help
-		The passwort for authentication at the ubirch backend.
+config UBIRCH_MULTIPLE_IDS
+    bool "Enable multipe ids"
+    default n
+    help
+        The device can handle multiple ids at once.
 
 config UBIRCH_BACKEND_PUBLIC_KEY
     string "ubirch backend public key"

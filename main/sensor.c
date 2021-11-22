@@ -45,6 +45,7 @@
 #define BOOT_BUTTON GPIO_NUM_0
 
 extern unsigned char UUID[16];
+extern unsigned char server_pub_key[crypto_sign_PUBLICKEYBYTES];
 
 unsigned int interval = CONFIG_UBIRCH_DEFAULT_INTERVAL;
 

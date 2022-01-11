@@ -154,7 +154,10 @@ static void main_task(void *pvParameters) {
             if (ubirch_next_key_update_get(&next_key_update) != ESP_OK) {
                 ESP_LOGW(TAG, "Failed to read next key update");
             }
-            if (next_key_update < time(NULL)) {
+            // FIXME
+            if (next_key_update < 0) {
+                ESP_LOGE(TAG, "Next key update is probably stored as 32 bit :/");
+            } else if (next_key_update < (int64_t)time(NULL)) {
                 if (update_keys() != ESP_OK) {
                     ESP_LOGE(TAG, "Failed to update keys");
                 }

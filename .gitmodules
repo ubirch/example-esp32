@@ -22,6 +22,7 @@
 [submodule "components/ubirch-esp32-key-storage"]
 	path = components/ubirch-esp32-key-storage
 	url = https://github.com/ubirch/ubirch-esp32-key-storage.git
-[submodule "components/msgpack-c"]
-	path = components/msgpack-c
-	url = https://github.com/ubirch/msgpack-c.git
+[submodule "components/msgpack/msgpack-c"]
+	path = components/msgpack-c/msgpack-c
+	url = https://github.com/msgpack/msgpack-c.git
+	ignore = untracked

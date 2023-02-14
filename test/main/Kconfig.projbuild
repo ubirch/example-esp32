@@ -42,4 +42,21 @@ config UBIRCH_KEY_LIFETIME_YEARS
 	help
 		The default key lifetime.
 
+config UBIRCH_REGISTER_THING
+	bool "Enable automatic thing registering"
+	default y
+	help
+		The device can register things automatically (token in NVS required).
+
+config UBIRCH_REGISTER_THING_URL
+	string "ubirch register thing URL"
+	default "https://api.console.prod.ubirch.com/ubirch-web-ui/api/v1/devices/create?with_api_info=true"
+	help
+		The url where new things can be registered.
+
+config BURICH_GET_INFO_OF_THING_URL
+	string "ubirch get info of thing URL"
+	default "https://api.console.prod.ubirch.com/ubirch-web-ui/api/v1/devices/api-config"
+	help
+		The url where info about a thing can be retrieved
 endmenu

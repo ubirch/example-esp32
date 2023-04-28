@@ -72,9 +72,9 @@ static void main_task(void *pvParameters) {
         ESP_LOGI(TAG, "add new default_id");
         // add new context id
         ubirch_id_context_add(short_name);
-        // set uuid
+        // set uuid Note: the first 6 bytes will be overriden by the mac address
         unsigned char uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x23,
-                                0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0xFF, 0xFF};
+                                0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0xFE, 0xDC};
         esp_efuse_mac_get_default(uuid);
         esp_base_mac_addr_set(uuid);
         ubirch_uuid_set(uuid, sizeof(uuid));

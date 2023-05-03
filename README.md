@@ -307,8 +307,8 @@ Copy the UUID and register the device in the [Ubirch Console Web Interface](http
 
 ## Basic functionality of the example
 
-- at startup, the system is initialized, see [init_system()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L138-L164)
-- try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L181-L199)
+- at startup, the system is initialized, see [init_system()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L225-L250)
+- try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L273-L287)
 - create the following tasks, which are afterwards handled by the system:
     - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L201-L217),
     allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](https://github.com/ubirch/ubirch-esp32-console/blob/master/README.md)

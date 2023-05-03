@@ -1,5 +1,6 @@
 import argparse
 import json
+import binascii
 
 parser = argparse.ArgumentParser()
 
@@ -24,12 +25,23 @@ key_storage,namespace,,
 server_key,data,base64,{backend_public_key}
 '''
 
-CSV_DEVICE_TEMPLATE = '''{short_name},namespace,,
-state,data,hex2bin,03
-uuid,data,hex2bin,{uuid}
-pw,data,binary,{password}
-pre_sign,data,hex2bin,00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+def csv_device_template(short_name, uuid, password):
+    # compare components/ubirch-esp32-key-storage/id_handling.h:37-41
+    ID_STATE_ID_REGISTERED = 0b00000010
+    ID_STATE_PASSWORD_SET = 0b00000100
+    initial_state = f"{ID_STATE_ID_REGISTERED | ID_STATE_PASSWORD_SET:02x}"
+    password_hex = binascii.hexlify(
+        bytes(password, 'utf-8')).decode('utf-8') + '00'
+    assert(len(password_hex) == 2 * (36 + 1))  # 36 byte + 1 (\0)
+    keypair_dummy = 64 * '00'
+    next_update_dummy = 4 * '00'
+    pre_sign_dummy = 64 * '00'
+    return f'''{short_name},namespace,,
+blob,data,hex2bin,{initial_state}{uuid}{password_hex}{keypair_dummy}{next_update_dummy}
+pre_sign,data,hex2bin,{pre_sign_dummy}
 '''
+
 
 with open(args.filename, 'r') as _f:
     devices = json.loads(_f.read())
@@ -41,9 +53,9 @@ csv = CSV_HEAD_TEMPLATE.format(backend_public_key=backend_public_key)
 
 for dev in devices:
     dev['uuid'] = dev['uuid'].replace('-', '')
-    csv += CSV_DEVICE_TEMPLATE.format(short_name=dev['short_name'],
-                                      uuid=dev['uuid'],
-                                      password=dev['password'])
+    csv += csv_device_template(dev['short_name'],
+                               dev['uuid'],
+                               dev['password'])
 
 with open(out_filename, 'w') as _f:
     _f.write(csv)

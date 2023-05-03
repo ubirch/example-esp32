@@ -8,7 +8,6 @@
         1. [The submodules](#the-submodules)
 1. [Pre-build configuration](#pre-build-configuration)
 1. [Build your application](#build-your-application)
-1. [Configuration](#configuration)
 1. [Device configuration](#device-configuration)
     1. [Configuration of a single ubirch ID with generated uuid](#configuration-of-a-single-ubirch-id-with-generated-uuid)
     1. [Configuration of single ubirch ID with pre-generated uuid](#configuration-of-single-ubirch-id-with-pre-generated-uuid)
@@ -19,7 +18,7 @@
         1. [Enter Console mode](#enter-console-mode)
     1. [Erase the device memory](#erase-the-device-memory)
 1. [Register your device in the Backend](#register-your-device-in-the-backend)
-1. [Basic functionality of the example](#aasic-functionality-of-the-example)
+1. [Basic functionality of the example](#basic-functionality-of-the-example)
 1. [Ubirch specific functionality](#ubirch-specific-functionality)
 1. [Build and run tests](#build-and-run-tests)
 
@@ -154,6 +153,11 @@ To set the password run
 update_password <password>
 ```
 
+To set the default backend key run
+```[bash]
+update_backendkey
+```
+
 Join the wifi with
 ```[bash]
 join YOUR-WIFI-SSID YOUR-WIFI-PWD
@@ -229,12 +233,11 @@ but register multiple devices and put a list of them in the json-file:
 ]
 ```
 
-Note that the `short_name`s are used to load the IDs from memory, see [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c).
+Note that the `short_name`s are used to load the IDs from memory, see [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L96).
 
-The number of IDs that can be used at once depends on the partition size.
-Each ID needs about 670 byte of memory (including nvs overhead), the backend key
+The number of IDs that can be used at once depend on the partition size.
+Each ID needs about 230 byte of memory (including nvs overhead), the backend key
 needs 64 byte (including nvs overhead) and the wifi credentials need space depending on SSID and password length.
-So with in average SSID and password and the minimum nvs partition size of 4096 byte there is space for about 6 IDs.
 
 ## Serial Interface
 
@@ -307,26 +310,24 @@ Copy the UUID and register the device in the [Ubirch Console Web Interface](http
 - at startup, the system is initialized, see [init_system()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L138-L164)
 - try to connect to the wifi, if stored wifi settings are available, see [connecting to wifi](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L181-L199)
 - create the following tasks, which are afterwards handled by the system:
-    - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L114-L130),
+    - [**enter_console_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L201-L217),
     allows you to enter the console. For details about the console, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-console) and [README](https://github.com/ubirch/ubirch-esp32-console/blob/master/README.md)
-    - [**update_time_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L97-L108),
+    - [**update_time_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L185-L195),
     updates the time via sntp
     - [**ubirch_ota_task**](https://github.com/ubirch/ubirch-esp32-ota/blob/master/ubirch_ota_task.c#L38-L56),
     checks if firmware updates are availabe and performs the updates. For more details, please refer to the [repository](https://github.com/ubirch/ubirch-esp32-ota) and the [README](https://github.com/ubirch/ubirch-esp32-ota/blob/master/README.md)
-    - [**main_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L60-L90),
+    - [**main_task**](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L61-L178),
     performs the main functionality of the application.
-    To extend this example to your specific application, you can apply your code [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L90)
 
 ## Ubirch specific functionality
 
-- generate keys, see [create_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L44)
-- register keys at the backend, see [register_keys()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/key_handling.h#L51)
-- store the previous signature (from the last message), [store_signature()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/message.h#L38)
-- store the public key from the backend, to verify the incoming message replies ([currenty hard coded public key](https://github.com/ubirch/ubirch-esp32-key-storage/blob/main/key_handling.c#L47-L52))
-- create a message in msgpack format, according to ubirch-protocol, see [ubirch_message()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/message.h#L62)
-- make a http post request, see [ubirch_send()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/ubirch_api.h#L43)
-- evaluate the message response, see [ubirch_parse_response()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/response.h#L42)
-- react to the UI message response parameter "i" to turn on the blue LED, if the value is above 1000, see [app_main()](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L67-L69) 
+- generate keys, see [create_keys()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/keys.h#L50)
+- register keys at the backend, see [register_keys()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/keys.h#L58)
+- store the previous signature (from the last message), [ubirch_previous_signature_set()](https://github.com/ubirch/ubirch-esp32-key-storage/blob/master/id_handling.h#L199)
+- store the public key from the backend, to verify the incoming message replies (see console command `update_backendkey` [here](https://github.com/ubirch/ubirch-esp32-console#command-overview)) 
+- create a message in msgpack format, according to ubirch-protocol, see [ubirch_message()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/message.h#L44)
+- make a http post request, see [ubirch_send()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/ubirch_api.h#L58)
+- evaluate the message response, see [ubirch_parse_backend_response()](https://github.com/ubirch/ubirch-esp32-api-http/blob/master/response.h#L73)
 
 ## Build and run tests
 

@@ -10,8 +10,7 @@
 1. [Build your application](#build-your-application)
 1. [Device configuration](#device-configuration)
     1. [Configuration of a single ubirch ID with generated uuid](#configuration-of-a-single-ubirch-id-with-generated-uuid)
-    1. [Configuration of single ubirch ID with pre-generated uuid](#configuration-of-single-ubirch-id-with-pre-generated-uuid)
-    1. [Configuration of multiple identities with nvs-flash tools](#configuration-of-multiple-identities-with-nvs-flash-tools)
+    1. [Configuration of custom IDs](#configuration-of-custom-ids)
 1. [Serial Interface](#serial-interface)
     1. [Tools for Serial Connection](#tools-for-serial-connection)
     1. [Console](#console)
@@ -141,7 +140,19 @@ To flash the device, type:
 
 ## Device configuration
 
+This example application allows the usage of a single identity, or if necessary also multiple identities. 
+To configure this run:
+```bash
+$ idf.py menuconfig
+```
+navigate to `Ubirch Application` and activate `UBIRCH_MULTIPLE_IDS` for multiple IDs or deactivate it for single ID.
+
 ### Configuration of a single ubirch ID with generated uuid
+
+For this configuration, the configuration parameter `UBIRCH_MULTIPLE_IDS` should be deactivated, 
+(check [device configuration](#device-configuration)).
+
+>Note this configuration does not require additional flashing of the `nvs` partition of your device.
 
 After [flashing the firmware](#build-your-application) you can [enter Console mode](#enter-console-mode)
 and use the `status` command to get your devices uuid.
@@ -172,31 +183,13 @@ When the device is connected to the internet it can get a time-update and create
 which is then registered in the ubirch backend.
 
 
-### Configuration of single ubirch ID with pre-generated uuid
+### Configuration of custom IDs 
 
-Use `$ uuidgen` to generate a new uuid and [register your device with this uuid in the Backend](#register-your-device-in-the-backend).
-Create a json-file (e.g. `my_device_config.json`) including the following json object with the information from your registered device:
-```json
-{
-  "short_name": "default_id",
-  "uuid": "<uuid>",
-  "password": "<password>"
-}
-```
+Follow the steps [here](https://github.com/ubirch/ubirch-esp32-key-storage/tree/master#Readme) 
+to create your custom devices and store them in the `nvs` memory of your device.
 
-Note that the `short_name` should be `default_id` if you are using a single ID in this example.
+MAke sure to use the identital shortnames for singel-ID [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L70) or multi-IDs [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L94-L108).
 
-Create the nvs-flash-partition description csv-file and binary-file (for more details compare
-[the esp-idf documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_partition_gen.html)) by running:
-```bash
-$ python create_ubirch_devices.py my_device_config.json
-$ python $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate my_device_config.csv my_device_config.bin 0x3000
-```
-
-Flash the partition to your device:
-```bash
-$ parttool.py write_partition --partition-name=nvs --input my_device_config.bin
-```
 
 [Enter Console mode](#enter-console-mode) to connect to wifi:
 ```[bash]
@@ -205,39 +198,6 @@ join YOUR-WIFI-SSID YOUR-WIFI-PWD
 
 When the device is connected to the internet it can get a time-update and creates a new key-pair
 which is then registered in the ubirch backend.
-
-To backup the whole configuration including the key-pair:
-```bash
-$ parttool.py read_partition --partition-name=nvs --output my_device_config_backup.bin
-```
-
-### Configuration of multiple identities with nvs-flash tools
-
-To use multiple ubirch IDs on your device enter menuconfig via `$ make menuconfig`,
-navigate to `Ubirch Application` and set `Enable multiple ids`. 
-
-Follow the same steps as in [the previous section](#configuration-of-single-ubirch-id-with-pre-generated-uuid)
-but register multiple devices and put a list of them in the json-file:
-```json
-[
-  {
-    "short_name": "foo",
-    "uuid": "<uuid-1>",
-    "password": "<password-1>"
-  },
-  {
-    "short_name": "bar",
-    "uuid": "<uuid-2>",
-    "password": "<password-2>"
-  }
-]
-```
-
-Note that the `short_name`s are used to load the IDs from memory, see [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L96).
-
-The number of IDs that can be used at once depend on the partition size.
-Each ID needs about 230 byte of memory (including nvs overhead), the backend key
-needs 64 byte (including nvs overhead) and the wifi credentials need space depending on SSID and password length.
 
 ## Serial Interface
 

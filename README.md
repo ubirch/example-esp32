@@ -188,7 +188,7 @@ which is then registered in the ubirch backend.
 Follow the steps [here](https://github.com/ubirch/ubirch-esp32-key-storage/tree/master#Readme) 
 to create your custom devices and store them in the `nvs` memory of your device.
 
-MAke sure to use the identital shortnames for singel-ID [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L70) or multi-IDs [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L94-L108).
+Make sure to use the identital shortnames for single-ID [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L70) or multi-IDs [here](https://github.com/ubirch/example-esp32/blob/master/main/main.c#L94-L108).
 
 
 [Enter Console mode](#enter-console-mode) to connect to wifi:
